@@ -10,5 +10,14 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://immersely:immersely12345@postgres:5432/immersely_db
+    depends_on:
+      - postgres
+
 volumes:
   pgdata:
