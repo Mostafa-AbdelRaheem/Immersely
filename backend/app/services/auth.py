@@ -1,12 +1,19 @@
+from datetime import datetime, timedelta, timezone
+
+import jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.security import (
     create_access_token,
     create_refresh_token,
+    decode_token,
     hash_password,
+    hash_token,
     verify_password,
 )
+from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin
 
@@ -14,7 +21,12 @@ from app.schemas.user import UserCreate, UserLogin
 class EmailAlreadyRegisteredError(Exception):
     pass
 
+
 class InvalidCredentialsError(Exception):
+    pass
+
+
+class InvalidRefreshTokenError(Exception):
     pass
 
 
@@ -33,6 +45,7 @@ async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
 
     return new_user
 
+
 async def login_user(db: AsyncSession, credentials: UserLogin) -> tuple[str, str]:
     result = await db.execute(select(User).where(User.email == credentials.email))
     user = result.scalar_one_or_none()
@@ -42,4 +55,57 @@ async def login_user(db: AsyncSession, credentials: UserLogin) -> tuple[str, str
 
     access_token = create_access_token(str(user.id))
     refresh_token = create_refresh_token(str(user.id))
+
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        days=settings.refresh_token_expire_days
+    )
+    db.add(
+        RefreshToken(
+            user_id=user.id,
+            token_hash=hash_token(refresh_token),
+            expires_at=expires_at,
+        )
+    )
+    await db.commit()
+
     return access_token, refresh_token
+
+
+async def refresh_tokens(db: AsyncSession, refresh_token: str) -> tuple[str, str]:
+    try:
+        payload = decode_token(refresh_token)
+    except jwt.PyJWTError:
+        raise InvalidRefreshTokenError("Invalid or expired refresh token")
+
+    if payload.get("type") != "refresh":
+        raise InvalidRefreshTokenError("Token is not a refresh token")
+
+    user_id = payload["sub"]
+    token_hash = hash_token(refresh_token)
+
+    result = await db.execute(
+        select(RefreshToken).where(RefreshToken.token_hash == token_hash)
+    )
+    stored_token = result.scalar_one_or_none()
+
+    if stored_token is None or stored_token.revoked_at is not None:
+        raise InvalidRefreshTokenError("Refresh token has been revoked or reused")
+
+    stored_token.revoked_at = datetime.now(timezone.utc)
+
+    new_access_token = create_access_token(user_id)
+    new_refresh_token = create_refresh_token(user_id)
+
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        days=settings.refresh_token_expire_days
+    )
+    db.add(
+        RefreshToken(
+            user_id=stored_token.user_id,
+            token_hash=hash_token(new_refresh_token),
+            expires_at=expires_at,
+        )
+    )
+    await db.commit()
+
+    return new_access_token, new_refresh_token
