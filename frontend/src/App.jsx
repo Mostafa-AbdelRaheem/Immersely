@@ -5,6 +5,7 @@ import LoginPage from './features/auth/LoginPage.jsx'
 import RegisterPage from './features/auth/RegisterPage.jsx'
 import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
 import RedirectIfAuthenticated from './features/auth/RedirectIfAuthenticated.jsx'
+import SentencesPage from './features/sentences/SentencesPage.jsx'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Home />} />
+            <Route path="/sentences" element={<SentencesPage />} />
           </Route>
         </Routes>
       </AuthProvider>

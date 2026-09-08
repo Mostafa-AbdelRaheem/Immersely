@@ -77,6 +77,9 @@ export async function apiFetch(path, options = {}) {
         throw new Error(`API error: ${retryResponse.status}`)
       }
 
+      if (retryResponse.status === 204) {
+        return null
+      }
       return retryResponse.json()
     }
 
@@ -90,5 +93,8 @@ export async function apiFetch(path, options = {}) {
     throw new Error(`API error: ${response.status}`)
   }
 
+  if (response.status === 204) {
+    return null
+  }
   return response.json()
 }
