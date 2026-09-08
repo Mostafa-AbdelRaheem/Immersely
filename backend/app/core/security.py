@@ -1,11 +1,9 @@
-from datetime import datetime, timedelta, timezone
-
 import jwt
-from passlib.context import CryptContext
-
-from app.core.config import settings
-
 import hashlib
+import secrets
+from passlib.context import CryptContext
+from datetime import datetime, timedelta, timezone
+from app.core.config import settings
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -40,3 +38,6 @@ def decode_token(token: str) -> dict:
 
 def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+def generate_csrf_token() -> str:
+    return secrets.token_urlsafe(32)
