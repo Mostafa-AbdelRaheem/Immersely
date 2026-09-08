@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 import jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
 from app.core.config import settings
 from app.core.security import (
@@ -130,6 +131,11 @@ async def refresh_tokens(db: AsyncSession, refresh_token: str) -> tuple[str, str
             expires_at=expires_at,
         )
     )
-    await db.commit()
+
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise InvalidRefreshTokenError("Refresh token has already been used")
 
     return new_access_token, new_refresh_token
