@@ -30,6 +30,15 @@ class InvalidRefreshTokenError(Exception):
     pass
 
 
+_failed_login_attempts: dict[str, list[datetime]] = {}
+
+LOCKOUT_THRESHOLD = 5
+LOCKOUT_WINDOW = timedelta(seconds=60)
+
+
+class AccountLockedError(Exception):
+    pass
+
 async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
     result = await db.execute(select(User).where(User.email == user_in.email))
     existing_user = result.scalar_one_or_none()
@@ -47,11 +56,26 @@ async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
 
 
 async def login_user(db: AsyncSession, credentials: UserLogin) -> tuple[str, str]:
-    result = await db.execute(select(User).where(User.email == credentials.email))
+    email = credentials.email
+    now = datetime.now(timezone.utc)
+
+    attempts = _failed_login_attempts.get(email, [])
+    recent_attempts = [t for t in attempts if now - t < LOCKOUT_WINDOW]
+
+    if len(recent_attempts) >= LOCKOUT_THRESHOLD:
+        raise AccountLockedError(
+            "Too many failed login attempts. Please try again in a minute."
+        )
+
+    result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
     if user is None or not verify_password(credentials.password, user.hashed_password):
+        recent_attempts.append(now)
+        _failed_login_attempts[email] = recent_attempts
         raise InvalidCredentialsError("Invalid email or password")
+
+    _failed_login_attempts.pop(email, None)
 
     access_token = create_access_token(str(user.id))
     refresh_token = create_refresh_token(str(user.id))
