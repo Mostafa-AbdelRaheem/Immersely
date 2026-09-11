@@ -2,7 +2,8 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Text, DateTime, ForeignKey
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import Text, DateTime, ForeignKey, ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,6 +21,11 @@ class Sentence(Base):
     )
     de: Mapped[str] = mapped_column(Text, nullable=False)
     en: Mapped[str] = mapped_column(Text, nullable=False)
+    topics: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), nullable=False, default=list, server_default="{}"
+    )
+    grammar_tag: Mapped[str | None] = mapped_column(Text, nullable=True)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(768), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

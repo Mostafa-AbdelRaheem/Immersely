@@ -1,11 +1,12 @@
 # app/api/sentences.py
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
 from app.core.db import get_db
+from app.core.limiter import limiter
 from app.models.user import User
 from app.schemas.sentence import SentenceCreate, SentenceRead, SentenceUpdate
 from app.services.sentences import (
@@ -21,7 +22,9 @@ router = APIRouter(prefix="/sentences", tags=["sentences"])
 
 
 @router.post("", response_model=SentenceRead, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 async def create(
+    request: Request,
     sentence_in: SentenceCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
