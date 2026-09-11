@@ -1,6 +1,7 @@
 // src/features/sentences/SentenceListItem.jsx
 import { useState } from 'react'
 import SentenceForm from './SentenceForm'
+import TagEditor from './TagEditor'
 
 export default function SentenceListItem({ sentence, onUpdate, onDelete }) {
   const [isEditing, setIsEditing] = useState(false)
@@ -34,16 +35,19 @@ export default function SentenceListItem({ sentence, onUpdate, onDelete }) {
   }
 
   return (
-    <div>
-      <p>
-        <strong>{sentence.de}</strong> — {sentence.en}
+    <div className="sentence-card">
+      <p className="sentence-text">
+        <strong>{sentence.de}</strong> <span className="en">— {sentence.en}</span>
       </p>
-      <button onClick={() => setIsEditing(true)} disabled={isDeleting}>
-        Edit
-      </button>
-      <button onClick={handleDelete} disabled={isDeleting}>
-        {isDeleting ? 'Deleting…' : 'Delete'}
-      </button>
+      <TagEditor sentence={sentence} onUpdate={onUpdate} />
+      <div className="actions">
+        <button className="btn btn-secondary" onClick={() => setIsEditing(true)} disabled={isDeleting}>
+          Edit
+        </button>
+        <button className="btn btn-danger" onClick={handleDelete} disabled={isDeleting}>
+          {isDeleting ? 'Deleting…' : 'Delete'}
+        </button>
+      </div>
     </div>
   )
 }

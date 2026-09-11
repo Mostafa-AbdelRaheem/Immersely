@@ -25,8 +25,8 @@ export default function SentenceForm({ initialValues, onSubmit, onCancel, submit
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
+    <form className="sentence-form" onSubmit={handleSubmit}>
+      <div className="form-field">
         <label htmlFor="de">German</label>
         <input
           id="de"
@@ -36,7 +36,7 @@ export default function SentenceForm({ initialValues, onSubmit, onCancel, submit
           disabled={isSubmitting}
         />
       </div>
-      <div>
+      <div className="form-field">
         <label htmlFor="en">English</label>
         <input
           id="en"
@@ -46,15 +46,17 @@ export default function SentenceForm({ initialValues, onSubmit, onCancel, submit
           disabled={isSubmitting}
         />
       </div>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <button type="submit" disabled={!isValid || isSubmitting}>
-        {submitLabel ?? 'Save'}
-      </button>
-      {onCancel && (
-        <button type="button" onClick={onCancel} disabled={isSubmitting}>
-          Cancel
+      {error && <p className="form-error">{error}</p>}
+      <div className="form-actions">
+        <button className="btn btn-primary" type="submit" disabled={!isValid || isSubmitting}>
+          {submitLabel ?? 'Save'}
         </button>
-      )}
+        {onCancel && (
+          <button className="btn btn-secondary" type="button" onClick={onCancel} disabled={isSubmitting}>
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   )
 }

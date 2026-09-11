@@ -1,6 +1,7 @@
 // src/features/sentences/SentencesPage.jsx
 import { useEffect, useState } from 'react'
 import { listSentences, createSentence, updateSentence, deleteSentence } from '../../api/sentences'
+import { useTopics } from '../../context/TopicsContext'
 import SentenceForm from './SentenceForm'
 import SentenceListItem from './SentenceListItem'
 
@@ -8,6 +9,9 @@ export default function SentencesPage() {
   const [sentences, setSentences] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedTopic, setSelectedTopic] = useState(null)
+
+  const { topics } = useTopics()
 
   useEffect(() => {
     let cancelled = false
@@ -52,7 +56,11 @@ export default function SentencesPage() {
   }
 
   if (isLoading) return <p>Loading…</p>
-  if (error) return <p style={{ color: 'red' }}>{error}</p>
+  if (error) return <p className="form-error">{error}</p>
+
+  const filteredSentences = selectedTopic
+    ? sentences.filter((s) => s.topics.includes(selectedTopic))
+    : sentences
 
   return (
     <div>
@@ -60,11 +68,31 @@ export default function SentencesPage() {
 
       <SentenceForm onSubmit={handleCreate} submitLabel="Add sentence" />
 
-      {sentences.length === 0 ? (
-        <p>No sentences yet — add one above.</p>
+      <div className="filter-bar">
+        <label htmlFor="topic-filter">Filter by topic:</label>
+        <select
+          id="topic-filter"
+          value={selectedTopic ?? ''}
+          onChange={(e) => setSelectedTopic(e.target.value || null)}
+        >
+          <option value="">All topics</option>
+          {topics.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {filteredSentences.length === 0 ? (
+        <p className="empty-state">
+          {sentences.length === 0
+            ? 'No sentences yet — add one above.'
+            : 'No sentences match this topic.'}
+        </p>
       ) : (
-        <div>
-          {sentences.map((s) => (
+        <div className="sentence-list">
+          {filteredSentences.map((s) => (
             <SentenceListItem
               key={s.id}
               sentence={s}

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { TopicsProvider } from './context/TopicsContext'
 import Home from './pages/Home.jsx'
 import LoginPage from './features/auth/LoginPage.jsx'
 import RegisterPage from './features/auth/RegisterPage.jsx'
@@ -19,7 +20,14 @@ function App() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Home />} />
-            <Route path="/sentences" element={<SentencesPage />} />
+            <Route
+              path="/sentences"
+              element={
+                <TopicsProvider>
+                  <SentencesPage />
+                </TopicsProvider>
+              }
+            />
           </Route>
         </Routes>
       </AuthProvider>
