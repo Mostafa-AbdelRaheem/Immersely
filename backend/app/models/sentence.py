@@ -6,7 +6,7 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy import Text, DateTime, ForeignKey, ARRAY
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, Float, CheckConstraint
+from sqlalchemy import Integer, Float, CheckConstraint, Index
 
 from app.models.base import Base
 
@@ -52,4 +52,5 @@ class Sentence(Base):
             "srs_state in ('new','learning','review','relearning')",
             name="ck_sentences_srs_state_valid",
         ),
+        Index("ix_sentences_user_id_srs_due", "user_id", "srs_due"),
     )

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { TopicsProvider } from './context/TopicsContext'
+import Layout from './components/Layout'
 import Home from './pages/Home.jsx'
 import LoginPage from './features/auth/LoginPage.jsx'
 import RegisterPage from './features/auth/RegisterPage.jsx'
@@ -19,15 +20,17 @@ function App() {
           </Route>
 
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Home />} />
-            <Route
-              path="/sentences"
-              element={
-                <TopicsProvider>
-                  <SentencesPage />
-                </TopicsProvider>
-              }
-            />
+            <Route element={<Layout />}>
+              <Route path="/" element={<Home />} />
+              <Route
+                path="/sentences"
+                element={
+                  <TopicsProvider>
+                    <SentencesPage />
+                  </TopicsProvider>
+                }
+              />
+            </Route>
           </Route>
         </Routes>
       </AuthProvider>
