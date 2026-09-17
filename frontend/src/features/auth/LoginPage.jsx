@@ -27,10 +27,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div>
+    <div className="auth-page">
       <h1>Log in</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="form-field">
           <label htmlFor="email">Email</label>
           <input
             id="email"
@@ -40,7 +40,7 @@ export default function LoginPage() {
             required
           />
         </div>
-        <div>
+        <div className="form-field">
           <label htmlFor="password">Password</label>
           <input
             id="password"
@@ -50,12 +50,16 @@ export default function LoginPage() {
             required
           />
         </div>
-        {error && <p role="alert">{error}</p>}
-        <button type="submit" disabled={isSubmitting}>
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
+        <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Logging in...' : 'Log in'}
         </button>
       </form>
-      <p>
+      <p className="auth-switch">
         Don't have an account? <Link to="/register">Register</Link>
       </p>
     </div>

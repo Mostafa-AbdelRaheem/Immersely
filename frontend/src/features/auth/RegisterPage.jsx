@@ -31,10 +31,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <div>
+    <div className="auth-page">
       <h1>Register</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <div className="form-field">
           <label htmlFor="email">Email</label>
           <input
             id="email"
@@ -44,7 +44,7 @@ export default function RegisterPage() {
             required
           />
         </div>
-        <div>
+        <div className="form-field">
           <label htmlFor="password">Password</label>
           <input
             id="password"
@@ -54,12 +54,16 @@ export default function RegisterPage() {
             required
           />
         </div>
-        {error && <p role="alert">{error}</p>}
-        <button type="submit" disabled={isSubmitting}>
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
+        <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Registering...' : 'Register'}
         </button>
       </form>
-      <p>
+      <p className="auth-switch">
         Already have an account? <Link to="/login">Log in</Link>
       </p>
     </div>
