@@ -30,10 +30,10 @@ def _get_chain():
     global _chain
     if _chain is None:
         llm = ChatGroq(
-            model="qwen/qwen3.6-27b",
+            model="openai/gpt-oss-20b",
             api_key=settings.groq_api_key,
             temperature=0,
-            reasoning_effort="none",
+            reasoning_effort="low",
             reasoning_format="hidden",
         )
         _chain = llm.with_structured_output(TopicTaggingResult)
