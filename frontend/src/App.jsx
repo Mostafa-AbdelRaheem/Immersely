@@ -8,6 +8,7 @@ import RegisterPage from './features/auth/RegisterPage.jsx'
 import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
 import RedirectIfAuthenticated from './features/auth/RedirectIfAuthenticated.jsx'
 import SentencesPage from './features/sentences/SentencesPage.jsx'
+import ScenePage from './features/session/ScenePage.jsx'
 
 function App() {
   return (
@@ -27,6 +28,14 @@ function App() {
                 element={
                   <TopicsProvider>
                     <SentencesPage />
+                  </TopicsProvider>
+                }
+              />
+              <Route
+                path="/review"
+                element={
+                  <TopicsProvider>
+                    <ScenePage />
                   </TopicsProvider>
                 }
               />

@@ -1,3 +1,4 @@
+// src/api/client.js
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 let currentAccessToken = null
@@ -74,7 +75,9 @@ export async function apiFetch(path, options = {}) {
       })
 
       if (!retryResponse.ok) {
-        throw new Error(`API error: ${retryResponse.status}`)
+        const err = new Error(`API error: ${retryResponse.status}`)
+        err.status = retryResponse.status
+        throw err
       }
 
       if (retryResponse.status === 204) {
@@ -86,11 +89,15 @@ export async function apiFetch(path, options = {}) {
     if (onUnauthorized) {
       onUnauthorized()
     }
-    throw new Error('API error: 401 (session expired)')
+    const err = new Error('API error: 401 (session expired)')
+    err.status = 401
+    throw err
   }
 
   if (!response.ok) {
-    throw new Error(`API error: ${response.status}`)
+    const err = new Error(`API error: ${response.status}`)
+    err.status = response.status
+    throw err
   }
 
   if (response.status === 204) {
