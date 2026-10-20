@@ -1,14 +1,42 @@
 // src/components/Layout.jsx
+// import { Outlet } from 'react-router-dom'
+// import Navbar from './Navbar'
+
+// export default function Layout() {
+//   return (
+//     <div className="app-shell">
+//       <Navbar />
+//       <main className="app-content">
+//         <Outlet />
+//       </main>
+//     </div>
+//   )
+// }
+
+// src/components/Layout.jsx
 import { Outlet } from 'react-router-dom'
-import Navbar from './Navbar'
+import { useAuth } from '../context/AuthContext'
+import DueTodayBadge from '../features/session/DueTodayBadge'
+import Sidebar from './Sidebar'
+import './Layout.css'
 
 export default function Layout() {
+  const { user } = useAuth()
+  const initial = user?.email ? user.email[0].toUpperCase() : '?'
+
   return (
     <div className="app-shell">
-      <Navbar />
-      <main className="app-content">
-        <Outlet />
-      </main>
+      <Sidebar />
+      <div className="app-main">
+        <header className="topbar">
+          <DueTodayBadge />
+          {user && <span className="topbar-user">{user.email}</span>}
+          <span className="topbar-avatar" aria-hidden="true">{initial}</span>
+        </header>
+        <main className="app-content">
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }
