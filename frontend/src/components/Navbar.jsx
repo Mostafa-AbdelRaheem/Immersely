@@ -1,11 +1,14 @@
 // src/components/Navbar.jsx
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../context/ThemeContext'
 import DueTodayBadge from '../features/session/DueTodayBadge'
 import SentencesPage from '../features/sentences/SentencesPage'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
+
 
   return (
     <nav className="navbar">
@@ -37,6 +40,9 @@ export default function Navbar() {
       <div className="navbar-right">
         <DueTodayBadge />
         {user && <span className="navbar-user">{user.email}</span>}
+        <button type="button" className="btn btn-secondary" onClick={toggleTheme}>
+          {theme === 'dark' ? 'Light' : 'Dark'} mode
+        </button>
         <button type="button" className="btn btn-secondary" onClick={logout}>
           Log out
         </button>
