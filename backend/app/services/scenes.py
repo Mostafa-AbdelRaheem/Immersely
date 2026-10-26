@@ -166,7 +166,7 @@ async def get_or_create_scene(
     user_id: uuid.UUID,
     topic: str,
     max_targets: int,
-    model: str = "openai/gpt-oss-20b",
+    model: str = settings.groq_model,
 ) -> Scene:
     """Entry point for scene retrieval: reuses a cached scene if still
     valid per the regeneration policy (§2.2), otherwise generates,

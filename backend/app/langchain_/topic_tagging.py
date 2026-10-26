@@ -30,7 +30,7 @@ def _get_chain():
     global _chain
     if _chain is None:
         llm = ChatGroq(
-            model="openai/gpt-oss-20b",
+            model=settings.groq_model,
             api_key=settings.groq_api_key,
             temperature=0,
             reasoning_effort="low",
