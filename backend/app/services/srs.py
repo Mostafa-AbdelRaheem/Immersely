@@ -142,15 +142,26 @@ def _apply_srs_fields_to_sentence(sentence: Sentence, fields: SRSFields) -> None
     sentence.srs_state = fields.state.value
 
 
-async def grade_sentence(
+async def apply_grade_to_sentence(
     db: AsyncSession, user_id: uuid.UUID, sentence_id: uuid.UUID, grade: Grade
 ) -> Sentence:
+    """Apply the SRS update to the sentence inside the caller's transaction.
+    Flushes but does NOT commit — the caller owns the commit, so other writes
+    (e.g. a review_event) can share the same transaction."""
     sentence = await get_sentence(db, user_id, sentence_id)
 
     current = _srs_fields_from_sentence(sentence)
     updated = update_srs(current, grade)
     _apply_srs_fields_to_sentence(sentence, updated)
 
+    await db.flush()
+    return sentence
+
+
+async def grade_sentence(
+    db: AsyncSession, user_id: uuid.UUID, sentence_id: uuid.UUID, grade: Grade
+) -> Sentence:
+    sentence = await apply_grade_to_sentence(db, user_id, sentence_id, grade)
     await db.commit()
     await db.refresh(sentence)
     return sentence
