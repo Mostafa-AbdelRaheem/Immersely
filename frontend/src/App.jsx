@@ -8,7 +8,7 @@ import RegisterPage from './features/auth/RegisterPage.jsx'
 import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
 import RedirectIfAuthenticated from './features/auth/RedirectIfAuthenticated.jsx'
 import SentencesPage from './features/sentences/SentencesPage.jsx'
-import ScenePage from './features/session/ScenePage.jsx'
+import SessionPage from './features/session/SessionPage.jsx'
 
 function App() {
   return (
@@ -21,24 +21,16 @@ function App() {
           </Route>
 
           <Route element={<ProtectedRoute />}>
-            <Route element={<Layout />}>
+            <Route
+              element={
+                <TopicsProvider>
+                  <Layout />
+                </TopicsProvider>
+              }
+            >
               <Route path="/" element={<Home />} />
-              <Route
-                path="/sentences"
-                element={
-                  <TopicsProvider>
-                    <SentencesPage />
-                  </TopicsProvider>
-                }
-              />
-              <Route
-                path="/review"
-                element={
-                  <TopicsProvider>
-                    <ScenePage />
-                  </TopicsProvider>
-                }
-              />
+              <Route path="/sentences" element={<SentencesPage />} />
+              <Route path="/review" element={<SessionPage />} />
             </Route>
           </Route>
         </Routes>

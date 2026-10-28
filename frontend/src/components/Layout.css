@@ -132,7 +132,7 @@
 
 @media (max-width: 860px) {
   /* .app-shell { flex-direction: column; } */
-  .app-shell { min-height: 100vh; display: flex; flex-direction: row; }
+  .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
 
   .sidebar {
     position: static;

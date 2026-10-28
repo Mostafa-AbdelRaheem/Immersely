@@ -527,3 +527,101 @@ select:focus-visible {
   color: var(--color-text-muted);
   font-style: italic;
 }
+
+/* --- Review session --- */
+
+.session-chunk { display: flex; flex-direction: column; gap: 1rem; }
+
+.session-filler {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.session-filler-line { margin: 0; font-size: 1rem; }
+
+.session-target { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.session-prompt {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.session-hint { margin: 0; font-size: 1.05rem; }
+
+.session-answer-row { display: flex; align-items: center; gap: 0.6rem; }
+
+.session-speaker { font-weight: 600; color: var(--color-text-muted); white-space: nowrap; }
+
+.session-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+}
+
+.session-input:focus { outline: none; border-color: var(--color-accent-text); }
+
+.session-input:disabled { opacity: 0.7; }
+
+/* Grade chips: selection is shown by a check mark and a thicker border,
+   not by color alone (primary and success share one green). */
+.grade-chips { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.75rem; }
+
+.grade-chip-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+
+.grade-chip {
+  min-width: 5.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.grade-chip:hover:not(:disabled) { background: var(--color-surface); }
+
+.grade-chip:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.grade-chip:focus-visible { outline: 2px solid var(--color-accent-text); outline-offset: 4px; }
+
+.grade-chip--again { border-color: var(--color-danger); color: var(--color-danger); }
+
+.grade-chip--selected {
+  background: var(--color-surface);
+  box-shadow: 0 0 0 2px var(--color-text);
+}
+
+.grade-chip--again.grade-chip--selected { background: var(--color-danger-bg); }
+
+.grade-chip-suggested { font-size: 0.7rem; color: var(--color-text-muted); }
+
+.session-summary { display: flex; flex-direction: column; gap: 1rem; align-items: flex-start; }
+
+.session-summary .home-cards { width: 100%; }
+
+.session-summary-meta { margin: 0; color: var(--color-text-muted); font-size: 0.9rem; }
+
+.session-target > .btn,
+.session-chunk > .btn { align-self: flex-start; }
+
+.session-summary .home-card strong { font-size: 1.5rem; }
+.session-runner { display: flex; flex-direction: column; gap: 1rem; }
+
+.session-feedback { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.session-feedback > .btn { align-self: flex-start; }
+
+.session-saved { margin: 0; font-size: 0.85rem; color: var(--color-text-muted); }
