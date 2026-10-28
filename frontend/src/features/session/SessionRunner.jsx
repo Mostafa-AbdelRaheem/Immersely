@@ -16,6 +16,7 @@ import {
   sessionReducer,
 } from './sessionReducer'
 import { formatDueIn } from './formatDue'
+import { formatTopic } from './formatTopic'
 
 export default function SessionRunner({ plan, onRestart }) {
   const [state, dispatch] = useReducer(sessionReducer, plan, createInitialState)
@@ -67,7 +68,7 @@ export default function SessionRunner({ plan, onRestart }) {
     <div className="session-runner">
       <div className="scene-header">
         <span className="scene-topic">
-          {plan.mode === 'scene' ? plan.topic : 'All topics'}
+          {plan.mode === 'scene' ? formatTopic(plan.topic) : 'All topics'}
         </span>
         <span className="scene-meta">
           {state.results.length} of {totalTargets} reviewed
