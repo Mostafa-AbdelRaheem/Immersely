@@ -10,3 +10,7 @@ python -c "import secrets; print(secrets.token_urlsafe(64))"
 ```bash
 docker compose up -d postgres
 ```
+
+```bash
+vercel dev
+```
