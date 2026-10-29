@@ -4,14 +4,13 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import Icon from './icons'
 
-// Items without `to` have no page yet (stubs come in a later step).
+// Items without `to` have no page yet; they render as disabled "Soon" entries.
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: 'dashboard', end: true },
   { to: '/sentences', label: 'Collections', icon: 'collections' },
   { to: '/review', label: 'Flashcards', icon: 'flashcards' },
-  { to: '/stats', label: 'Stats', icon: 'stats' },
-  { label: 'Conversation', icon: 'conversation' },
-  { label: 'Reads', icon: 'reads' },
+  { label: 'Conversations', icon: 'conversation' },
+  { label: 'Read', icon: 'reads' },
   { label: 'Settings', icon: 'settings' },
 ]
 
