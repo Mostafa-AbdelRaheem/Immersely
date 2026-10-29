@@ -1,15 +1,14 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { TopicsProvider } from './context/TopicsContext'
 import Layout from './components/Layout'
-import Home from './pages/Home.jsx'
 import LoginPage from './features/auth/LoginPage.jsx'
 import RegisterPage from './features/auth/RegisterPage.jsx'
 import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
 import RedirectIfAuthenticated from './features/auth/RedirectIfAuthenticated.jsx'
 import SentencesPage from './features/sentences/SentencesPage.jsx'
 import SessionPage from './features/session/SessionPage.jsx'
-import StatsPage from './features/stats/StatsPage.jsx'
+import DashboardPage from './features/stats/DashboardPage.jsx'
 
 function App() {
   return (
@@ -29,10 +28,10 @@ function App() {
                 </TopicsProvider>
               }
             >
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<DashboardPage />} />
               <Route path="/sentences" element={<SentencesPage />} />
               <Route path="/review" element={<SessionPage />} />
-              <Route path="/stats" element={<StatsPage />} />
+              <Route path="/stats" element={<Navigate to="/" replace />} />
             </Route>
           </Route>
         </Routes>

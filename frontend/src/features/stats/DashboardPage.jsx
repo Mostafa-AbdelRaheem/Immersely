@@ -1,4 +1,4 @@
-// src/features/stats/StatsPage.jsx
+// src/features/stats/DashboardPage.jsx
 import { useState } from 'react'
 import { RANGES } from '../../api/stats'
 import { useStatsSummary } from './useStatsSummary'
@@ -6,17 +6,16 @@ import { formatPercent, formatTierBreakdown } from './statsFormat'
 import AccuracyChart from './AccuracyChart'
 import TopicList from './TopicList'
 
-
 const RANGE_LABELS = { '7d': '7 days', '30d': '30 days', '90d': '90 days', all: 'All time' }
 
-export default function StatsPage() {
+export default function DashboardPage() {
   const [range, setRange] = useState('30d')
   const { data, loading, error } = useStatsSummary(range)
 
   return (
     <div className="stats-page">
       <div className="stats-header">
-        <h1>Stats</h1>
+        <h1>Dashboard</h1>
         <div className="stats-range" role="group" aria-label="Time range">
           {RANGES.map((r) => (
             <button
@@ -68,10 +67,12 @@ export default function StatsPage() {
               <span className="stats-note">days in a row</span>
             </div>
           </div>
+
           <div className="home-card">
             <span className="home-card-label">Daily accuracy</span>
             <AccuracyChart series={data.series} />
           </div>
+
           {data.topics.length > 0 && (
             <div className="home-card">
               <span className="home-card-label">By topic</span>
