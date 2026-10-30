@@ -1,46 +1,6 @@
 /* src/index.css */
 
 
-.navbar-user { font-size: 0.85rem; color: var(--color-text-muted); }
-
-/* --- Buttons --- */
-
-.btn {
-  font-size: 0.9rem;
-  padding: 0.55rem 1.1rem;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-secondary {
-  background: transparent;
-  border-color: var(--color-border);
-  color: var(--color-text);
-}
-
-.btn-secondary:hover { background: var(--color-surface-2); }
-
-.btn-primary {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
-
-.btn-danger {
-  background: transparent;
-  border-color: var(--color-danger);
-  color: var(--color-danger);
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: var(--color-danger);
-  color: var(--color-on-danger);
-}
-
-.btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
 
 /* --- Home page --- */

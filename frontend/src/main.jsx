@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 import './styles/tokens.css'
 import './styles/base.css'
+import './styles/buttons.css'
 import './index.css'
 import App from './App.jsx'
 
