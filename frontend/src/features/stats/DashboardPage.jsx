@@ -41,9 +41,9 @@ export default function DashboardPage() {
 
       {data && (
         <div className={`stats-body${loading ? ' stats-body--loading' : ''}`}>
-          <div className="home-cards">
-            <div className="home-card">
-              <span className="home-card-label">Accuracy</span>
+          <div className="stat-grid">
+            <div className="stat-card">
+              <span className="stat-card-label">Accuracy</span>
               <strong className="stats-big">{formatPercent(data.accuracy)}</strong>
               {data.totals.total === 0 ? (
                 <span className="stats-note">No reviews in this period</span>
@@ -55,27 +55,27 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="home-card">
-              <span className="home-card-label">Current streak</span>
+            <div className="stat-card">
+              <span className="stat-card-label">Current streak</span>
               <strong className="stats-big">{data.streaks.current}</strong>
               <span className="stats-note">days in a row</span>
             </div>
 
-            <div className="home-card">
-              <span className="home-card-label">Longest streak</span>
+            <div className="stat-card">
+              <span className="stat-card-label">Longest streak</span>
               <strong className="stats-big">{data.streaks.longest}</strong>
               <span className="stats-note">days in a row</span>
             </div>
           </div>
 
-          <div className="home-card">
-            <span className="home-card-label">Daily accuracy</span>
+          <div className="stat-card">
+            <span className="stat-card-label">Daily accuracy</span>
             <AccuracyChart series={data.series} />
           </div>
 
           {data.topics.length > 0 && (
-            <div className="home-card">
-              <span className="home-card-label">By topic</span>
+            <div className="stat-card">
+              <span className="stat-card-label">By topic</span>
               <TopicList topics={data.topics} />
             </div>
           )}

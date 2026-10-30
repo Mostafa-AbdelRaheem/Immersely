@@ -185,15 +185,15 @@ select:focus-visible {
 
 .home-hero h1 { margin-bottom: 0.25rem; }
 
-.home-subtitle { color: var(--color-text-muted); margin: 0; }
+.page-subtitle { color: var(--color-text-muted); margin: 0; }
 
-.home-cards {
+.stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
 }
 
-.home-card {
+.stat-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -204,7 +204,7 @@ select:focus-visible {
   box-shadow: var(--shadow-sm);
 }
 
-.home-card-label {
+.stat-card-label {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--color-text-muted);
@@ -610,14 +610,14 @@ select:focus-visible {
 
 .session-summary { display: flex; flex-direction: column; gap: 1rem; align-items: flex-start; }
 
-.session-summary .home-cards { width: 100%; }
+.session-summary .stat-grid { width: 100%; }
 
 .session-summary-meta { margin: 0; color: var(--color-text-muted); font-size: 0.9rem; }
 
 .session-target > .btn,
 .session-chunk > .btn { align-self: flex-start; }
 
-.session-summary .home-card strong { font-size: 1.5rem; }
+.session-summary .stat-card strong { font-size: 1.5rem; }
 .session-runner { display: flex; flex-direction: column; gap: 1rem; }
 
 .session-feedback { display: flex; flex-direction: column; gap: 0.75rem; }

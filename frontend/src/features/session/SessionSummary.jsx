@@ -9,21 +9,21 @@ export default function SessionSummary({ summary, onRestart }) {
   return (
     <div className="session-summary">
       <h2>Session complete</h2>
-      <p className="home-subtitle">
+      <p className="page-subtitle">
         You reviewed {total} {total === 1 ? 'sentence' : 'sentences'}.
       </p>
 
-      <div className="home-cards">
-        <div className="home-card">
-          <span className="home-card-label">Correct</span>
+      <div className="stat-grid">
+        <div className="stat-card">
+          <span className="stat-card-label">Correct</span>
           <strong>{tiers.correct}</strong>
         </div>
-        <div className="home-card">
-          <span className="home-card-label">Almost correct</span>
+        <div className="stat-card">
+          <span className="stat-card-label">Almost correct</span>
           <strong>{tiers.almost_correct}</strong>
         </div>
-        <div className="home-card">
-          <span className="home-card-label">Incorrect</span>
+        <div className="stat-card">
+          <span className="stat-card-label">Incorrect</span>
           <strong>{tiers.incorrect}</strong>
         </div>
       </div>

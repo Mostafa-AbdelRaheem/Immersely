@@ -41,7 +41,7 @@ export default function SessionPage() {
   return (
     <div className="scene-page">
       <h1>Review</h1>
-      <p className="home-subtitle">
+      <p className="page-subtitle">
         Pick a topic to review inside a dialogue, or choose all topics to review sentences one by one.
       </p>
 
