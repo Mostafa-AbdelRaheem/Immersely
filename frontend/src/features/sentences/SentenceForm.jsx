@@ -1,5 +1,6 @@
 // src/features/sentences/SentenceForm.jsx
 import { useState } from 'react'
+import './sentences.css'
 
 export default function SentenceForm({ initialValues, onSubmit, onCancel, submitLabel }) {
   const [de, setDe] = useState(initialValues?.de ?? '')

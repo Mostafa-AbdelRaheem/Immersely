@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import SentenceForm from './SentenceForm'
 import TagEditor from './TagEditor'
+import './sentences.css'
 
 export default function SentenceListItem({ sentence, onUpdate, onDelete }) {
   const [isEditing, setIsEditing] = useState(false)

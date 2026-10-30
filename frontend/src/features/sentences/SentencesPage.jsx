@@ -4,6 +4,7 @@ import { listSentences, createSentence, updateSentence, deleteSentence } from '.
 import { useTopics } from '../../context/TopicsContext'
 import SentenceForm from './SentenceForm'
 import SentenceListItem from './SentenceListItem'
+import './sentences.css'
 
 export default function SentencesPage() {
   const [sentences, setSentences] = useState([])

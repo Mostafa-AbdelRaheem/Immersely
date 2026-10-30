@@ -1,6 +1,7 @@
 // src/features/sentences/TagEditor.jsx
 import { useState } from 'react'
 import { useTopics } from '../../context/TopicsContext'
+import './sentences.css'
 
 export default function TagEditor({ sentence, onUpdate }) {
   const { topics: allTopics } = useTopics()
