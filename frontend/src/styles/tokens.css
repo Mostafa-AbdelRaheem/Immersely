@@ -1,0 +1,53 @@
+/* src/styles/tokens.css
+   Design tokens only: theme colours, radii, fonts. No selectors for elements. */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #141517;
+  --color-sidebar: #1b1c1e;
+  --color-surface: #232528;
+  --color-surface-2: #2d2f33;
+  --color-border: #2e3033;
+  --color-text: #f3f4f5;
+  --color-text-muted: #a5a8ad;
+  --color-primary: #c8e63b;
+  --color-primary-hover: #d6f04f;
+  --color-on-primary: #15171a;
+  --color-accent-text: #c8e63b; /* accent used as text/borders */
+  --color-danger: #f08a5d;
+  --color-on-danger: #15171a;
+  --color-danger-bg: rgba(240, 138, 93, 0.14);
+  --color-success-bg: rgba(200, 230, 59, 0.14);
+  --color-success-text: #c8e63b;
+  --color-highlight-bg: rgba(200, 230, 59, 0.08);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --color-bg: #eef0ea;
+  --color-sidebar: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-2: #f2f4ee;
+  --color-border: #e2e5dc;
+  --color-text: #15171a;
+  --color-text-muted: #5b6065;
+  --color-primary: #c8e63b;
+  --color-primary-hover: #b9d82c;
+  --color-on-primary: #15171a;
+  --color-accent-text: #4f6b00;
+  --color-danger: #b4491f;
+  --color-on-danger: #ffffff;
+  --color-danger-bg: rgba(180, 73, 31, 0.1);
+  --color-success-bg: rgba(79, 107, 0, 0.12);
+  --color-success-text: #4f6b00;
+  --color-highlight-bg: rgba(200, 230, 59, 0.22);
+  --shadow-sm: 0 1px 2px rgba(21, 23, 26, 0.06);
+}
+
+:root {
+  --radius: 14px;
+  --radius-lg: 22px;
+  --font-sans: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
