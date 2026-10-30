@@ -1,0 +1,36 @@
+/* src/styles/base.css
+   Document-wide defaults: reset, typography, form element defaults, focus ring.
+   Loaded after tokens.css and before any component or feature styles. */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+input, select, textarea, button {
+  font: inherit;
+  color: inherit;
+}
+
+input, select, textarea {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+a { color: var(--color-accent-text); }
+
+h1 { font-size: 1.5rem; margin: 0 0 0.25rem; }
+
+/* Keyboard focus ring, shared by every interactive element. */
+.btn:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 2px;
+}
