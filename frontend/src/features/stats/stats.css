@@ -1,0 +1,4 @@
+/* src/features/stats/stats.css
+   Small text style shared by the dashboard, the chart and the topic list. */
+
+.stats-note { font-size: 0.85rem; color: var(--color-text-muted); }

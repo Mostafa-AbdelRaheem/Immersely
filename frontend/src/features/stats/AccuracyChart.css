@@ -1,0 +1,14 @@
+/* src/features/stats/AccuracyChart.css
+   Daily accuracy bar chart (inline SVG). */
+
+.stats-chart { margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+
+.stats-chart-svg { width: 100%; height: auto; display: block; }
+
+.stats-chart-grid { stroke: var(--color-border); stroke-width: 1; }
+
+.stats-chart-label { fill: var(--color-text-muted); font-size: 10px; }
+
+.stats-chart-bar { fill: var(--color-primary); stroke: var(--color-text); stroke-width: 1; }
+
+.stats-chart-empty { stroke: var(--color-text-muted); stroke-width: 2; }

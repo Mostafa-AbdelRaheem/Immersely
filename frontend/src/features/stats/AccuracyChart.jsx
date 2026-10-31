@@ -1,6 +1,8 @@
 // src/features/stats/AccuracyChart.jsx
 import { buildBars } from './statsChart'
 import { formatDayLabel } from './statsFormat'
+import './stats.css'
+import './AccuracyChart.css'
 
 const GRID = [0, 0.5, 1]
 
