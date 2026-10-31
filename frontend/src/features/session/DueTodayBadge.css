@@ -1,0 +1,15 @@
+/* src/features/session/DueTodayBadge.css
+   "N due today" pill. Rendered in the topbar today; keep it self-contained
+   so it can be reused elsewhere. */
+
+.due-today-badge {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  width: fit-content;
+}
+
+.due-today-badge--loading { color: var(--color-text-muted); background: transparent; }

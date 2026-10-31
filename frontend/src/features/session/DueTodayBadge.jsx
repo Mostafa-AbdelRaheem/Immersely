@@ -1,6 +1,7 @@
 // src/features/session/DueTodayBadge.jsx
 import { useEffect, useState } from 'react'
 import { getDueCount } from '../../api/srs'
+import './DueTodayBadge.css'
 
 export default function DueTodayBadge({ topic }) {
   const [count, setCount] = useState(null)

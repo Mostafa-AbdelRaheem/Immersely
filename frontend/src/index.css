@@ -1,19 +1,5 @@
 /* src/index.css */
 
-/* --- Due-today badge --- */
-
-.due-today-badge {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-on-primary);
-  background: var(--color-primary);
-  border-radius: 999px;
-  padding: 0.3rem 0.8rem;
-  width: fit-content;
-}
-
-.due-today-badge--loading { color: var(--color-text-muted); background: transparent; }
-
 /* --- Stats page --- */
 
 .stats-page { display: flex; flex-direction: column; gap: 1.5rem; }
