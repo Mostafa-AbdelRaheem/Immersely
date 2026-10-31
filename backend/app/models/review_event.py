@@ -45,7 +45,7 @@ class ReviewEvent(Base):
 
     __table_args__ = (
         CheckConstraint(
-            "mode in ('isolated','cloze_in_scene','free_production')",
+            "mode in ('isolated','cloze_in_scene','free_production','flip')",
             name="ck_review_events_mode_valid",
         ),
         CheckConstraint(
