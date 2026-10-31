@@ -40,38 +40,3 @@
 .stats-body--loading { opacity: 0.55; }
 
 .stats-big { font-size: 2rem; line-height: 1.1; }
-
-
-.stats-chart { margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-
-.stats-chart-svg { width: 100%; height: auto; display: block; }
-
-.stats-chart-grid { stroke: var(--color-border); stroke-width: 1; }
-
-.stats-chart-label { fill: var(--color-text-muted); font-size: 10px; }
-
-.stats-chart-bar { fill: var(--color-primary); stroke: var(--color-text); stroke-width: 1; }
-
-.stats-chart-empty { stroke: var(--color-text-muted); stroke-width: 2; }
-
-.topic-list { display: flex; flex-direction: column; gap: 0.75rem; }
-
-.topic-list-heading { margin: 0.5rem 0 0; font-size: 0.95rem; }
-
-.topic-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1rem; }
-
-.topic-row { display: flex; flex-direction: column; gap: 0.3rem; }
-
-.topic-row-head { display: flex; justify-content: space-between; gap: 1rem; font-weight: 600; }
-
-.topic-row-track {
-  height: 8px;
-  border-radius: 999px;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  overflow: hidden;
-}
-
-.topic-row-fill { height: 100%; background: var(--color-primary); }
-
-.topic-row--unranked { opacity: 0.7; }

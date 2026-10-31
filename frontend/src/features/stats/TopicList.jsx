@@ -1,6 +1,7 @@
 // src/features/stats/TopicList.jsx
 import { formatPercent, formatTierBreakdown, topicLabel } from './statsFormat'
 import './stats.css'
+import './TopicList.css'
 
 function TopicRow({ stat }) {
   const pct = stat.accuracy === null ? 0 : Math.round(stat.accuracy * 100)
