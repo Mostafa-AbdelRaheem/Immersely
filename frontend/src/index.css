@@ -195,39 +195,6 @@
 
 .session-input:disabled { opacity: 0.7; }
 
-/* Grade chips: selection is shown by a check mark and a thicker border,
-   not by color alone (primary and success share one green). */
-.grade-chips { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.75rem; }
-
-.grade-chip-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
-
-.grade-chip {
-  min-width: 5.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-2);
-  color: var(--color-text);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.grade-chip:hover:not(:disabled) { background: var(--color-surface); }
-
-.grade-chip:disabled { opacity: 0.55; cursor: not-allowed; }
-
-.grade-chip:focus-visible { outline: 2px solid var(--color-accent-text); outline-offset: 4px; }
-
-.grade-chip--again { border-color: var(--color-danger); color: var(--color-danger); }
-
-.grade-chip--selected {
-  background: var(--color-surface);
-  box-shadow: 0 0 0 2px var(--color-text);
-}
-
-.grade-chip--again.grade-chip--selected { background: var(--color-danger-bg); }
-
-.grade-chip-suggested { font-size: 0.7rem; color: var(--color-text-muted); }
 
 
 .session-target > .btn,

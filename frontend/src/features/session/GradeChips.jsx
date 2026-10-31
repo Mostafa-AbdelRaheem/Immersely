@@ -1,4 +1,6 @@
 // src/features/session/GradeChips.jsx
+import './GradeChips.css'
+
 const GRADES = [
   { value: 'again', label: 'Again' },
   { value: 'hard', label: 'Hard' },
