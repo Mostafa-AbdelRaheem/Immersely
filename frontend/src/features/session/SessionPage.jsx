@@ -1,25 +1,29 @@
 // src/features/session/SessionPage.jsx
 import { useState } from 'react'
 import { startSession } from '../../api/review'
-import { useTopics } from '../../context/TopicsContext'
+import TopicGrid from '../topics/TopicGrid'
+import { useTopicOverview } from '../topics/useTopicOverview'
 import SessionRunner from './SessionRunner'
 import { describeError } from './sessionErrors'
+import { formatTopic } from './formatTopic'
 
 export default function SessionPage() {
-  const { topics, isLoading: topicsLoading } = useTopics()
-  const [selectedTopic, setSelectedTopic] = useState('') // '' = all topics
+  const { overview, isLoading, error: overviewError, reload } = useTopicOverview()
+  const [startedTopic, setStartedTopic] = useState(null) // null = all topics
   const [plan, setPlan] = useState(null)
   const [isStarting, setIsStarting] = useState(false)
   const [error, setError] = useState(null)
   const [noDue, setNoDue] = useState(false)
 
-  async function handleStart() {
+  async function handleStart(topic) {
+    if (isStarting) return
     setIsStarting(true)
     setError(null)
     setNoDue(false)
+    setStartedTopic(topic)
 
     try {
-      const data = await startSession(selectedTopic || null)
+      const data = await startSession(topic)
       setPlan(data)
     } catch (err) {
       if (err.status === 404) {
@@ -34,8 +38,13 @@ export default function SessionPage() {
     }
   }
 
+  function handleRestart() {
+    setPlan(null)
+    reload() // counts changed during the session, so refetch them
+  }
+
   if (plan) {
-    return <SessionRunner plan={plan} onRestart={() => setPlan(null)} />
+    return <SessionRunner plan={plan} onRestart={handleRestart} />
   }
 
   return (
@@ -46,38 +55,42 @@ export default function SessionPage() {
       </p>
 
       <div className="filter-bar">
-        <label htmlFor="session-topic">Topic:</label>
-        <select
-          id="session-topic"
-          value={selectedTopic}
-          onChange={(e) => setSelectedTopic(e.target.value)}
-          disabled={topicsLoading || isStarting}
-        >
-          <option value="">All topics</option>
-          {topics.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
         <button
           type="button"
           className="btn btn-primary"
-          onClick={handleStart}
-          disabled={topicsLoading || isStarting}
+          onClick={() => handleStart(null)}
+          disabled={isStarting}
         >
-          {isStarting ? 'Preparing…' : 'Start review'}
+          {isStarting && startedTopic === null ? 'Preparing…' : 'Review all topics'}
         </button>
+        {isStarting && startedTopic !== null && (
+          <span>Preparing {formatTopic(startedTopic)}…</span>
+        )}
       </div>
 
       {error && <p className="form-error">{error}</p>}
 
       {noDue && (
         <p className="empty-state">
-          {selectedTopic
-            ? `Nothing due for "${selectedTopic}" right now — check back later.`
+          {startedTopic
+            ? `Nothing due for "${formatTopic(startedTopic)}" right now — check back later.`
             : 'Nothing due right now — check back later.'}
         </p>
+      )}
+
+      {isLoading && <p className="page-subtitle">Loading your topics…</p>}
+
+      {overviewError && (
+        <p className="form-error">
+          {overviewError}{' '}
+          <button type="button" className="btn" onClick={reload}>
+            Retry
+          </button>
+        </p>
+      )}
+
+      {!isLoading && !overviewError && (
+        <TopicGrid overview={overview} onSelect={handleStart} />
       )}
     </div>
   )
