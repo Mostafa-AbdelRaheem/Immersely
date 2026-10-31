@@ -17,6 +17,7 @@ import {
 } from './sessionReducer'
 import { formatDueIn } from './formatDue'
 import { formatTopic } from './formatTopic'
+import './SessionRunner.css'
 
 export default function SessionRunner({ plan, onRestart }) {
   const [state, dispatch] = useReducer(sessionReducer, plan, createInitialState)
