@@ -14,3 +14,7 @@ docker compose up -d postgres
 ```bash
 vercel dev
 ```
+
+```bash
+conda activate immersely
+```

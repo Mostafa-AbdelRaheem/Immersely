@@ -1,4 +1,6 @@
 // src/features/session/SessionSummary.jsx
+import './SessionSummary.css'
+
 function formatDue(iso) {
   return iso ? new Date(iso).toLocaleString() : '—'
 }

@@ -1,6 +1,5 @@
 /* src/index.css */
 
-
 /* --- Due-today badge --- */
 
 .due-today-badge {
@@ -14,8 +13,6 @@
 }
 
 .due-today-badge--loading { color: var(--color-text-muted); background: transparent; }
-
-
 
 /* --- Scene view --- */
 
@@ -232,16 +229,10 @@
 
 .grade-chip-suggested { font-size: 0.7rem; color: var(--color-text-muted); }
 
-.session-summary { display: flex; flex-direction: column; gap: 1rem; align-items: flex-start; }
-
-.session-summary .stat-grid { width: 100%; }
-
-.session-summary-meta { margin: 0; color: var(--color-text-muted); font-size: 0.9rem; }
 
 .session-target > .btn,
 .session-chunk > .btn { align-self: flex-start; }
 
-.session-summary .stat-card strong { font-size: 1.5rem; }
 .session-runner { display: flex; flex-direction: column; gap: 1rem; }
 
 .session-feedback { display: flex; flex-direction: column; gap: 0.75rem; }
