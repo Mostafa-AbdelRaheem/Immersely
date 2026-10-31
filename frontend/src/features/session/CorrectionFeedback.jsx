@@ -1,4 +1,6 @@
 // src/features/session/CorrectionFeedback.jsx
+import './CorrectionFeedback.css'
+
 export default function CorrectionFeedback({ result }) {
   const { tier, model_answer, corrected_input, diff_note, rule_practiced, rule_note } = result
 
