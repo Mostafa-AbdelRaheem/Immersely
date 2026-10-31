@@ -1,4 +1,3 @@
-
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from app.schemas.srs import Grade, SRSState
 from datetime import timezone as _tz  # already imported above, just noting it's reused
 from sqlalchemy import func, select
+from sqlalchemy.sql.elements import ColumnElement
 
 
 @dataclass(frozen=True)
@@ -167,6 +167,13 @@ async def grade_sentence(
     return sentence
 
 
+def due_condition(now: datetime) -> ColumnElement[bool]:
+    """The ONE definition of 'a sentence is due'. Every due query (list,
+    count, topic hub) must use this so the numbers can never disagree.
+    Deliberately does not include user_id: callers filter by owner
+    explicitly so a missing ownership check stays visible in review."""
+    return Sentence.srs_due <= now
+
 
 async def list_due_sentences(
     db: AsyncSession,
@@ -177,7 +184,7 @@ async def list_due_sentences(
     now = datetime.now(timezone.utc)
     stmt = (
         select(Sentence)
-        .where(Sentence.user_id == user_id, Sentence.srs_due <= now)
+        .where(Sentence.user_id == user_id, due_condition(now))
         .order_by(Sentence.srs_due.asc())
         .limit(limit)
     )
@@ -194,7 +201,7 @@ async def count_due_sentences(
     stmt = (
         select(func.count())
         .select_from(Sentence)
-        .where(Sentence.user_id == user_id, Sentence.srs_due <= now)
+        .where(Sentence.user_id == user_id, due_condition(now))
     )
     if topic is not None:
         stmt = stmt.where(Sentence.topics.any(topic))
