@@ -6,6 +6,7 @@ import { formatPercent, formatTierBreakdown } from './statsFormat'
 import AccuracyChart from './AccuracyChart'
 import TopicList from './TopicList'
 import './stats.css'
+import './DashboardPage.css'
 
 const RANGE_LABELS = { '7d': '7 days', '30d': '30 days', '90d': '90 days', all: 'All time' }
 
