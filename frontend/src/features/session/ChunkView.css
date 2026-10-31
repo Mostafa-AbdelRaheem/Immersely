@@ -1,0 +1,49 @@
+/* src/features/session/ChunkView.css
+   One chunk of a review session: filler lines, the target prompt, and the answer row. */
+
+.session-chunk { display: flex; flex-direction: column; gap: 1rem; }
+
+.session-filler {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.session-filler-line { margin: 0; font-size: 1rem; }
+
+.session-target { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.session-prompt {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.session-hint { margin: 0; font-size: 1.05rem; }
+
+.session-answer-row { display: flex; align-items: center; gap: 0.6rem; }
+
+.session-speaker { font-weight: 600; color: var(--color-text-muted); white-space: nowrap; }
+
+.session-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: 1rem;
+}
+
+.session-input:focus { outline: none; border-color: var(--color-accent-text); }
+
+.session-input:disabled { opacity: 0.7; }
+
+.session-target > .btn,
+.session-chunk > .btn { align-self: flex-start; }

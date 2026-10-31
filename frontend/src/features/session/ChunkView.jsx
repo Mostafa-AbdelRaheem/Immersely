@@ -1,5 +1,6 @@
 // src/features/session/ChunkView.jsx
 import { useState } from 'react'
+import './ChunkView.css'
 
 export default function ChunkView({
   chunk,
