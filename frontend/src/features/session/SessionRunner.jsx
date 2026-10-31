@@ -1,6 +1,7 @@
 // src/features/session/SessionRunner.jsx
 import { useReducer } from 'react'
 import { checkAnswer, gradeReview } from '../../api/review'
+import { useDueCount } from '../../context/DueCountContext'
 import ChunkView from './ChunkView'
 import CorrectionFeedback from './CorrectionFeedback'
 import GradeChips from './GradeChips'
@@ -21,6 +22,7 @@ import './SessionRunner.css'
 
 export default function SessionRunner({ plan, onRestart }) {
   const [state, dispatch] = useReducer(sessionReducer, plan, createInitialState)
+  const { refresh: refreshDueCount } = useDueCount()
 
   if (state.phase === PHASE.SUMMARY) {
     return <SessionSummary summary={buildSummary(state.results)} onRestart={onRestart} />
@@ -57,6 +59,7 @@ export default function SessionRunner({ plan, onRestart }) {
     try {
       const saved = await gradeReview(chunk.target.sentence_id, payload)
       dispatch({ type: 'grade_succeeded', saved })
+      refreshDueCount() // fire-and-forget: it never throws, and must not block the UI
     } catch (err) {
       dispatch({
         type: 'grade_failed',
