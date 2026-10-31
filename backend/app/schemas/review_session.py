@@ -24,6 +24,15 @@ class ReviewGradeIn(BaseModel):
     scene_id: uuid.UUID | None = None
 
 
+class FlipGradeIn(BaseModel):
+    """Sent when the user grades a self-assessed flip card. Only the grade:
+    the server derives the tier (flip_logic.grade_to_tier) and logs the event
+    with mode 'flip'. There is no typed input, no scene and no AI check."""
+    model_config = ConfigDict(extra="forbid")
+
+    grade: Grade
+
+
 class ReviewGradeOut(BaseModel):
     """The sentence's new SRS state after the grade was applied."""
     model_config = ConfigDict(from_attributes=True)
