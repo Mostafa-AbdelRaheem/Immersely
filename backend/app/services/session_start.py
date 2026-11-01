@@ -26,6 +26,19 @@ class SessionPlan:
     chunks: list[Chunk]
 
 
+@dataclass(frozen=True)
+class FlipCard:
+    sentence_id: uuid.UUID
+    de: str
+    en: str
+
+
+@dataclass(frozen=True)
+class FlipSession:
+    topic: str | None
+    cards: list[FlipCard]
+
+
 async def _start_isolated(
     db: AsyncSession, user_id: uuid.UUID, max_targets: int
 ) -> SessionPlan:
@@ -92,3 +105,20 @@ async def start_session(
     if topic is None:
         return await _start_isolated(db, user_id, max_targets)
     return await _start_scene(db, user_id, topic, max_targets)
+
+
+async def start_flip_session(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    topic: str | None,
+    limit: int,
+) -> FlipSession:
+    """Due sentences as self-graded flip cards, oldest-due first. Carries the
+    German text on purpose (nothing is compared server-side). Raises
+    NoDueSentencesError when nothing is due."""
+    sentences = await list_due_sentences(db, user_id, topic=topic, limit=limit)
+    if not sentences:
+        raise NoDueSentencesError("No due sentences")
+
+    cards = [FlipCard(sentence_id=s.id, de=s.de, en=s.en) for s in sentences]
+    return FlipSession(topic=topic, cards=cards)
