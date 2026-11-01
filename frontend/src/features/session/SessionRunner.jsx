@@ -72,7 +72,7 @@ export default function SessionRunner({ plan, onRestart }) {
     <div className="session-runner">
       <div className="scene-header">
         <span className="scene-topic">
-          {plan.mode === 'scene' ? formatTopic(plan.topic) : 'All topics'}
+          {plan.topic ? formatTopic(plan.topic) : 'All topics'}
         </span>
         <span className="scene-meta">
           {state.results.length} of {totalTargets} reviewed
