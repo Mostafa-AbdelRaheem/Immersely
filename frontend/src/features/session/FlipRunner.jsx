@@ -29,6 +29,14 @@ export default function FlipRunner({ cards, topic, direction, onRestart }) {
   const saving = state.phase === PHASE.SAVING
   const showChips = state.phase === PHASE.BACK || saving
 
+  function handleFlip() {
+    if (state.phase === PHASE.FRONT) {
+      dispatch({ type: 'revealed' })
+    } else if (state.phase === PHASE.BACK) {
+      dispatch({ type: 'flipped_back' })
+    }
+  }
+
   async function handleGrade(grade) {
     if (state.phase !== PHASE.BACK) return
 
@@ -57,7 +65,8 @@ export default function FlipRunner({ cards, topic, direction, onRestart }) {
         card={card}
         direction={direction}
         revealed={showChips}
-        onReveal={() => dispatch({ type: 'revealed' })}
+        disabled={saving}
+        onFlip={handleFlip}
       />
 
       {showChips && (

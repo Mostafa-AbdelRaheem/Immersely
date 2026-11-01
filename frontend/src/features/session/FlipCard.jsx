@@ -8,15 +8,16 @@ const SIDES = {
 
 const LABELS = { en: 'English', de: 'German' }
 
-export default function FlipCard({ card, direction, revealed, onReveal }) {
+export default function FlipCard({ card, direction, revealed, disabled, onFlip }) {
   const sides = SIDES[direction] ?? SIDES['en-de']
 
   return (
     <button
       type="button"
       className={`flip-card${revealed ? ' flip-card--revealed' : ''}`}
-      onClick={revealed ? undefined : onReveal}
-      aria-label={revealed ? undefined : 'Flip card to show the answer'}
+      onClick={onFlip}
+      disabled={disabled}
+      aria-label={revealed ? 'Flip card back to the question' : 'Flip card to show the answer'}
     >
       <span className="flip-card-inner">
         <span className="flip-card-face flip-card-face--front" aria-hidden={revealed}>
@@ -32,6 +33,7 @@ export default function FlipCard({ card, direction, revealed, onReveal }) {
           <span className="flip-card-text" lang={sides.back}>
             {card[sides.back]}
           </span>
+          <span className="flip-card-hint">Click to flip back</span>
         </span>
       </span>
 
