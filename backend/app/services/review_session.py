@@ -9,6 +9,8 @@ from app.models.scene import Scene
 from app.models.sentence import Sentence
 from app.schemas.correction import Tier
 from app.schemas.review_session import ReviewGradeIn
+from app.schemas.srs import Grade
+from app.services.flip_logic import grade_to_tier
 from app.services.srs import apply_grade_to_sentence
 
 
@@ -56,6 +58,35 @@ async def record_review(
             None if payload.tier == Tier.INCORRECT else payload.rule_practiced
         ),
         grade=payload.grade.value,
+    )
+    db.add(event)
+
+    await db.commit()
+    await db.refresh(sentence)
+    return sentence
+
+
+async def record_flip_review(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    sentence_id: uuid.UUID,
+    grade: Grade,
+) -> Sentence:
+    """Apply a self-assigned grade (flip card) and log a mode='flip' event in
+    ONE transaction. The tier is derived from the grade, never client-supplied.
+    Raises SentenceNotFoundError (from services.sentences) before any write."""
+    sentence = await apply_grade_to_sentence(db, user_id, sentence_id, grade)
+
+    event = ReviewEvent(
+        user_id=user_id,
+        sentence_id=sentence_id,
+        scene_id=None,
+        mode="flip",
+        user_input=None,
+        tier=grade_to_tier(grade).value,
+        corrected_input=None,
+        rule_practiced=None,
+        grade=grade.value,
     )
     db.add(event)
 
