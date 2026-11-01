@@ -8,8 +8,10 @@ export function checkAnswer(sentenceId, answer) {
   })
 }
 
-// topic = a topic string -> scene mode; null/undefined -> isolated mode (all topics)
-export function startSession(topic, maxTargets) {
+// method omitted: a topic means scene mode, no topic means typed (all topics).
+// method 'typed' with a topic: typed isolated sentences for that topic.
+// method 'scene' requires a topic.
+export function startSession(topic, maxTargets, method) {
   const body = {}
   if (topic) {
     body.topic = topic
@@ -17,7 +19,23 @@ export function startSession(topic, maxTargets) {
   if (maxTargets !== undefined) {
     body.max_targets = maxTargets
   }
+  if (method) {
+    body.method = method
+  }
   return apiFetch('/review/session/start', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+// Flip-card session: `limit` is how many cards the user wants (the server
+// caps it). topic null/undefined = all topics. The response carries German.
+export function startFlipSession(topic, limit) {
+  const body = { limit }
+  if (topic) {
+    body.topic = topic
+  }
+  return apiFetch('/review/flip/start', {
     method: 'POST',
     body: JSON.stringify(body),
   })
@@ -39,5 +57,14 @@ export function gradeReview(
       rule_practiced: rulePracticed ?? null,
       scene_id: sceneId ?? null,
     }),
+  })
+}
+
+// Self-graded flip card: only the grade. The server derives the tier and
+// logs the event with mode 'flip'.
+export function gradeFlip(sentenceId, grade) {
+  return apiFetch(`/review/${sentenceId}/flip-grade`, {
+    method: 'POST',
+    body: JSON.stringify({ grade }),
   })
 }
