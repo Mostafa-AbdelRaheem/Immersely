@@ -47,7 +47,11 @@ async def start_review_session(
 ):
     try:
         plan = await start_session(
-            db, current_user.id, session_in.topic, session_in.max_targets
+            db,
+            current_user.id,
+            session_in.topic,
+            session_in.max_targets,
+            method=session_in.method,
         )
     except NoDueSentencesError:
         raise HTTPException(
