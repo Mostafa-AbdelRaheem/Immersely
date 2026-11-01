@@ -11,6 +11,8 @@ from app.models.user import User
 from app.schemas.correction import CheckAnswerIn, CheckAnswerOut
 from app.schemas.review_session import (
     FlipGradeIn,
+    FlipSessionStartIn,
+    FlipSessionStartOut,
     ReviewGradeIn,
     ReviewGradeOut,
     SessionStartIn,
@@ -29,7 +31,7 @@ from app.services.review_session import (
 from app.services.scene_verification import SceneVerificationFailedError
 from app.services.scenes import NoDueSentencesError
 from app.services.session_chunks import MalformedSceneError
-from app.services.session_start import start_session
+from app.services.session_start import start_flip_session, start_session
 from app.services.sentences import SentenceNotFoundError as GradeSentenceNotFoundError
 
 router = APIRouter(prefix="/review", tags=["review"])
@@ -58,6 +60,26 @@ async def start_review_session(
             detail="Could not prepare the review session right now. Please try again.",
         )
     return plan
+
+
+@router.post("/flip/start", response_model=FlipSessionStartOut)
+@limiter.limit("30/minute")
+async def start_flip_review_session(
+    request: Request,
+    session_in: FlipSessionStartIn,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        session = await start_flip_session(
+            db, current_user.id, session_in.topic, session_in.limit
+        )
+    except NoDueSentencesError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No due sentences to review",
+        )
+    return session
 
 
 @router.post("/{sentence_id}/check", response_model=CheckAnswerOut)
