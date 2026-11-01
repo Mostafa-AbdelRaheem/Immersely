@@ -10,6 +10,7 @@ from app.core.limiter import limiter
 from app.models.user import User
 from app.schemas.correction import CheckAnswerIn, CheckAnswerOut
 from app.schemas.review_session import (
+    FlipGradeIn,
     ReviewGradeIn,
     ReviewGradeOut,
     SessionStartIn,
@@ -20,7 +21,11 @@ from app.services.correction import (
     SentenceNotFoundError,
     check_answer,
 )
-from app.services.review_session import InvalidSceneError, record_review
+from app.services.review_session import (
+    InvalidSceneError,
+    record_flip_review,
+    record_review,
+)
 from app.services.scene_verification import SceneVerificationFailedError
 from app.services.scenes import NoDueSentencesError
 from app.services.session_chunks import MalformedSceneError
@@ -101,5 +106,26 @@ async def grade_sentence_review(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Scene not found for this sentence",
+        )
+    return sentence
+
+
+@router.post("/{sentence_id}/flip-grade", response_model=ReviewGradeOut)
+@limiter.limit("60/minute")
+async def grade_flip_card(
+    request: Request,
+    sentence_id: uuid.UUID,
+    grade_in: FlipGradeIn,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        sentence = await record_flip_review(
+            db, current_user.id, sentence_id, grade_in.grade
+        )
+    except GradeSentenceNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Sentence {sentence_id} not found",
         )
     return sentence
