@@ -43,7 +43,7 @@ export default function MethodPanel({ topic, dueCount, isStarting, onStart }) {
             checked={method === 'flip'}
             onChange={() => setMethod('flip')}
           />{' '}
-          Flip cards (you grade yourself)
+          Flip cards
         </label>
         <label>
           <input
@@ -52,7 +52,7 @@ export default function MethodPanel({ topic, dueCount, isStarting, onStart }) {
             checked={method === 'typed'}
             onChange={() => setMethod('typed')}
           />{' '}
-          Typed (AI-graded)
+          Typed
         </label>
         {topic && (
           <label>
@@ -62,7 +62,7 @@ export default function MethodPanel({ topic, dueCount, isStarting, onStart }) {
               checked={method === 'scene'}
               onChange={() => setMethod('scene')}
             />{' '}
-            Scene (AI dialogue, AI-graded)
+            Scene
           </label>
         )}
       </fieldset>
