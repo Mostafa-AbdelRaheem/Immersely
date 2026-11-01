@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.core.config import settings
 from app.schemas.correction import Tier
@@ -43,13 +43,22 @@ class ReviewGradeOut(BaseModel):
 
 
 class SessionStartIn(BaseModel):
-    """topic given -> scene mode; topic null/omitted -> isolated mode (all)."""
+    """method omitted: topic given -> scene mode, topic null -> typed (all).
+    method 'typed': typed isolated sentences, optionally for one topic.
+    method 'scene': scene mode, requires a topic. Flip has its own endpoint."""
     model_config = ConfigDict(extra="forbid")
 
     topic: str | None = Field(default=None, min_length=1, max_length=100)
     max_targets: int = Field(
         default_factory=lambda: settings.scene_max_targets, ge=1, le=20
     )
+    method: Literal["scene", "typed"] | None = None
+
+    @model_validator(mode="after")
+    def _scene_needs_topic(self):
+        if self.method == "scene" and self.topic is None:
+            raise ValueError("method 'scene' requires a topic")
+        return self
 
 
 class ChunkTargetOut(BaseModel):
