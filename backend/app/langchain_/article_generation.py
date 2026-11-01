@@ -22,6 +22,8 @@ makes sense as a whole: a short story, a description or an explanation, \
 whichever fits the sentences best. Keep the language simple and everyday, \
 suitable for a learner.
 - Separate paragraphs with a blank line.
+- Put the title ONLY in the title field. text_de must start directly with \
+the first paragraph: no title line, no "Titel:" prefix, no heading.
 - text_en must be a faithful English translation of text_de with the same \
 paragraph breaks.
 - used_sentence_ids must list the id of every provided sentence that appears \
