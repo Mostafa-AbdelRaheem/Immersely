@@ -1,28 +1,75 @@
 /* src/features/session/FlipCard.css
-   The answer side is marked by a left border and a text label,
-   not by color alone (primary and success share one green). */
+   Two faces share one grid cell. The back is pre-rotated 180deg; adding
+   --revealed rotates the container so the faces swap. The answer side is
+   marked by a left border and a text label, not by color alone. */
 
 .flip-card {
+  display: block;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  color: var(--color-text);
+  text-align: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  perspective: 1000px;
+}
+
+.flip-card--revealed { cursor: default; }
+
+.flip-card:focus-visible {
+  outline: 2px solid var(--color-accent-text);
+  outline-offset: 4px;
+  border-radius: var(--radius-lg);
+}
+
+.flip-card-inner {
+  display: grid;
+  min-height: 11rem;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+.flip-card--revealed .flip-card-inner { transform: rotateY(180deg); }
+
+.flip-card-face {
+  grid-area: 1 / 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   padding: 1.25rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
-.flip-card-side { display: flex; flex-direction: column; gap: 0.25rem; width: 100%; }
-
-.flip-card-side--back {
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border);
+.flip-card-face--back {
+  transform: rotateY(180deg);
   border-left: 4px solid var(--color-text);
-  padding-left: 0.75rem;
 }
 
 .flip-card-label { font-size: 0.75rem; color: var(--color-text-muted); }
 
-.flip-card-text { margin: 0; font-size: 1.25rem; font-weight: 600; }
+.flip-card-text { font-size: 1.25rem; font-weight: 600; }
+
+.flip-card-hint { font-size: 0.8rem; color: var(--color-text-muted); }
+
+/* Screen-reader-only announcement of the answer after the flip. */
+.flip-card-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip-card-inner { transition: none; }
+}

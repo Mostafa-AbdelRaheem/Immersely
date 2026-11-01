@@ -12,26 +12,32 @@ export default function FlipCard({ card, direction, revealed, onReveal }) {
   const sides = SIDES[direction] ?? SIDES['en-de']
 
   return (
-    <div className="flip-card">
-      <div className="flip-card-side">
-        <span className="flip-card-label">{LABELS[sides.front]}</span>
-        <p className="flip-card-text" lang={sides.front}>
-          {card[sides.front]}
-        </p>
-      </div>
+    <button
+      type="button"
+      className={`flip-card${revealed ? ' flip-card--revealed' : ''}`}
+      onClick={revealed ? undefined : onReveal}
+      aria-label={revealed ? undefined : 'Flip card to show the answer'}
+    >
+      <span className="flip-card-inner">
+        <span className="flip-card-face flip-card-face--front" aria-hidden={revealed}>
+          <span className="flip-card-label">{LABELS[sides.front]}</span>
+          <span className="flip-card-text" lang={sides.front}>
+            {card[sides.front]}
+          </span>
+          <span className="flip-card-hint">Click to flip</span>
+        </span>
 
-      {revealed ? (
-        <div className="flip-card-side flip-card-side--back">
+        <span className="flip-card-face flip-card-face--back" aria-hidden={!revealed}>
           <span className="flip-card-label">{LABELS[sides.back]}</span>
-          <p className="flip-card-text" lang={sides.back}>
+          <span className="flip-card-text" lang={sides.back}>
             {card[sides.back]}
-          </p>
-        </div>
-      ) : (
-        <button type="button" className="btn btn-primary" onClick={onReveal}>
-          Show answer
-        </button>
-      )}
-    </div>
+          </span>
+        </span>
+      </span>
+
+      <span className="flip-card-live" aria-live="polite">
+        {revealed ? `${LABELS[sides.back]}: ${card[sides.back]}` : ''}
+      </span>
+    </button>
   )
 }
