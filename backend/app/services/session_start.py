@@ -15,6 +15,7 @@ from app.services.session_chunks import (
     MalformedSceneError,
     build_scene_chunks,
 )
+from app.services.session_logic import Method, resolve_method
 from app.services.srs import list_due_sentences
 
 
@@ -40,9 +41,14 @@ class FlipSession:
 
 
 async def _start_isolated(
-    db: AsyncSession, user_id: uuid.UUID, max_targets: int
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    max_targets: int,
+    topic: str | None = None,
 ) -> SessionPlan:
-    sentences = await list_due_sentences(db, user_id, limit=max_targets)
+    sentences = await list_due_sentences(
+        db, user_id, topic=topic, limit=max_targets
+    )
     if not sentences:
         raise NoDueSentencesError("No due sentences")
 
@@ -53,7 +59,7 @@ async def _start_isolated(
         )
         for s in sentences
     ]
-    return SessionPlan(mode="isolated", topic=None, scene_id=None, chunks=chunks)
+    return SessionPlan(mode="isolated", topic=topic, scene_id=None, chunks=chunks)
 
 
 async def _start_scene(
@@ -98,13 +104,15 @@ async def start_session(
     user_id: uuid.UUID,
     topic: str | None,
     max_targets: int,
+    method: Method | None = None,
 ) -> SessionPlan:
-    """topic given -> scene mode; topic None ("all") -> isolated mode.
+    """method omitted: topic given -> scene mode, topic None -> typed (all).
+    method 'typed' -> isolated sentences (optionally for one topic).
     Raises NoDueSentencesError, SceneVerificationFailedError (from M5) or
     MalformedSceneError."""
-    if topic is None:
-        return await _start_isolated(db, user_id, max_targets)
-    return await _start_scene(db, user_id, topic, max_targets)
+    if resolve_method(topic, method) == "scene":
+        return await _start_scene(db, user_id, topic, max_targets)
+    return await _start_isolated(db, user_id, max_targets, topic=topic)
 
 
 async def start_flip_session(
