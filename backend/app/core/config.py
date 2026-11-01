@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     scene_max_padding: int = 4
     scene_max_reviews_before_regen: int = 5
 
+    flip_session_max_cards: int = 500
+
     timeout: int = 15
 
     model_config = SettingsConfigDict(env_file=".env")
