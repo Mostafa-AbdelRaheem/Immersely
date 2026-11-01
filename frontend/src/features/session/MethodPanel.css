@@ -1,19 +1,15 @@
-/* src/features/session/MethodPanel.css */
+/* src/features/session/MethodPanel.css
+   Rendered inside MethodDialog, which provides the card surface,
+   border and padding. */
 
 .method-panel {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 1rem;
-  margin-top: 1.5rem;
-  padding: 1.25rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
 }
 
-.method-panel-title { margin: 0; font-size: 1.1rem; }
+.method-panel-title { margin: 0; padding-right: 2.5rem; font-size: 1.1rem; }
 
 .method-panel-due { margin: 0; color: var(--color-text-muted); font-size: 0.9rem; }
 

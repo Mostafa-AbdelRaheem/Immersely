@@ -5,6 +5,7 @@ import { useDueCount } from '../../context/DueCountContext'
 import TopicGrid from '../topics/TopicGrid'
 import { useTopicOverview } from '../topics/useTopicOverview'
 import FlipRunner from './FlipRunner'
+import MethodDialog from './MethodDialog'
 import MethodPanel from './MethodPanel'
 import SessionRunner from './SessionRunner'
 import { describeError } from './sessionErrors'
@@ -25,6 +26,12 @@ export default function SessionPage() {
   function handleSelect(topic) {
     if (isStarting) return
     setSelection({ topic })
+    setError(null)
+    setNoDue(false)
+  }
+
+  function handleClose() {
+    setSelection(null)
     setError(null)
     setNoDue(false)
   }
@@ -59,6 +66,7 @@ export default function SessionPage() {
   function handleRestart() {
     setPlan(null)
     setFlip(null)
+    setSelection(null) // otherwise the dialog would reopen by itself
     reload() // counts changed during the session, so refetch them
   }
 
@@ -94,7 +102,6 @@ export default function SessionPage() {
         <button
           type="button"
           className="btn btn-secondary"
-          aria-pressed={selection !== null && selection.topic === null}
           onClick={() => handleSelect(null)}
           disabled={isStarting}
         >
@@ -118,23 +125,30 @@ export default function SessionPage() {
       )}
 
       {selection && (
-        <MethodPanel
-          key={`${selection.topic ?? '__all__'}-${selectedDue}`}
-          topic={selection.topic}
-          dueCount={selectedDue}
-          isStarting={isStarting}
-          onStart={handleStart}
-        />
-      )}
+        <MethodDialog
+          key={selection.topic ?? '__all__'}
+          title={selection.topic ? formatTopic(selection.topic) : 'All topics'}
+          busy={isStarting}
+          onClose={handleClose}
+        >
+          <MethodPanel
+            key={`${selection.topic ?? '__all__'}-${selectedDue}`}
+            topic={selection.topic}
+            dueCount={selectedDue}
+            isStarting={isStarting}
+            onStart={handleStart}
+          />
 
-      {error && <p className="form-error">{error}</p>}
+          {error && <p className="form-error">{error}</p>}
 
-      {noDue && (
-        <p className="empty-state">
-          {selection?.topic
-            ? `Nothing due for "${formatTopic(selection.topic)}" right now — check back later.`
-            : 'Nothing due right now — check back later.'}
-        </p>
+          {noDue && (
+            <p className="empty-state">
+              {selection.topic
+                ? `Nothing due for "${formatTopic(selection.topic)}" right now — check back later.`
+                : 'Nothing due right now — check back later.'}
+            </p>
+          )}
+        </MethodDialog>
       )}
     </div>
   )
