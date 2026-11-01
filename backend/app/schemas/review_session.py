@@ -77,3 +77,30 @@ class SessionStartOut(BaseModel):
     topic: str | None
     scene_id: uuid.UUID | None
     chunks: list[ChunkOut]
+
+
+class FlipSessionStartIn(BaseModel):
+    """Start a flip-card session. The user chooses how many cards (limit);
+    the server caps it at settings.flip_session_max_cards. topic null = all."""
+    model_config = ConfigDict(extra="forbid")
+
+    topic: str | None = Field(default=None, min_length=1, max_length=100)
+    limit: int = Field(..., ge=1, le=settings.flip_session_max_cards)
+
+
+class FlipCardOut(BaseModel):
+    """One flip card. Unlike ChunkTargetOut this DOES carry German: a flip card
+    is self-graded, nothing is compared server-side, so there is nothing to
+    protect. Never reuse this model for typed sessions."""
+    model_config = ConfigDict(from_attributes=True)
+
+    sentence_id: uuid.UUID
+    de: str
+    en: str
+
+
+class FlipSessionStartOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    topic: str | None
+    cards: list[FlipCardOut]
