@@ -75,6 +75,44 @@ describe('reveal and grade selection', () => {
   })
 })
 
+describe('flipping back', () => {
+  it('returns to the front, and the card can be revealed again', () => {
+    const back = run(createInitialState([card(1)]), { type: 'revealed' })
+    const front = flipReducer(back, { type: 'flipped_back' })
+    expect(front.phase).toBe(PHASE.FRONT)
+    expect(cardsLeft(front)).toBe(1)
+    expect(flipReducer(front, { type: 'revealed' }).phase).toBe(PHASE.BACK)
+  })
+
+  it('is ignored on the front, while saving and after the summary', () => {
+    const front = createInitialState([card(1)])
+    expect(flipReducer(front, { type: 'flipped_back' })).toBe(front)
+    const saving = run(
+      front,
+      { type: 'revealed' },
+      { type: 'grade_selected', grade: 'good' },
+    )
+    expect(flipReducer(saving, { type: 'flipped_back' })).toBe(saving)
+    const done = gradeCard(createInitialState([card(1)]), 'good', DAY)
+    expect(flipReducer(done, { type: 'flipped_back' })).toBe(done)
+  })
+
+  it('flipping back and forth does not disturb grading', () => {
+    const s = run(
+      createInitialState([card(1), card(2)]),
+      { type: 'revealed' },
+      { type: 'flipped_back' },
+      { type: 'revealed' },
+      { type: 'grade_selected', grade: 'good' },
+      { type: 'grade_succeeded', saved: saved(DAY), now: NOW },
+    )
+    expect(s.results).toHaveLength(1)
+    expect(s.results[0].grade).toBe('good')
+    expect(currentCard(s).sentence_id).toBe('s2')
+    expect(s.phase).toBe(PHASE.FRONT)
+  })
+})
+
 describe('re-queue rule', () => {
   it('a card due far in the future is finished for this session', () => {
     const s = gradeCard(createInitialState([card(1), card(2)]), 'good', DAY)

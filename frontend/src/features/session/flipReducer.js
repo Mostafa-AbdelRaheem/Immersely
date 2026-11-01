@@ -47,6 +47,11 @@ export function flipReducer(state, action) {
       if (state.phase !== PHASE.FRONT) return state
       return { ...state, phase: PHASE.BACK, error: null }
 
+    case 'flipped_back':
+      // Look at the question again. Not allowed while a grade is saving.
+      if (state.phase !== PHASE.BACK) return state
+      return { ...state, phase: PHASE.FRONT, error: null }
+
     case 'grade_selected':
       if (state.phase !== PHASE.BACK) return state
       if (!GRADES.includes(action.grade)) return state
