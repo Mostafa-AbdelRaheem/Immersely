@@ -15,6 +15,53 @@
   margin: 0;
 }
 
+.read-generate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.read-generating {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius);
+}
+
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-rotate 0.8s linear infinite;
+}
+
+.spinner--lg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Slow the spin instead of removing it: the motion is the "still working" signal. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}
+
 .read-list {
   list-style: none;
   margin: 0 0 1rem;
@@ -38,8 +85,7 @@
   cursor: pointer;
 }
 
-.read-list-item:hover,
-.read-list-item--open {
+.read-list-item:hover {
   border-color: var(--color-primary);
 }
 

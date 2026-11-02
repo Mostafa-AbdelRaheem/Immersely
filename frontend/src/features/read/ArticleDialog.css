@@ -1,0 +1,46 @@
+/* src/features/read/ArticleDialog.css */
+.article-dialog {
+  width: min(720px, 92vw);
+  max-height: 85vh;
+  padding: 0;
+  overflow: auto;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.article-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.article-dialog-inner {
+  position: relative;
+  padding: 1.5rem;
+}
+
+.article-dialog-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  font: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.article-dialog-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ArticleView draws its own card; inside the dialog the dialog is the card. */
+.article-dialog .article-view {
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}

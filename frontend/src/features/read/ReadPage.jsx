@@ -4,6 +4,7 @@ import { createArticle, deleteArticle, listArticles } from '../../api/articles'
 import { formatTopic } from '../session/formatTopic'
 import TopicGrid from '../topics/TopicGrid'
 import { useTopicOverview } from '../topics/useTopicOverview'
+import ArticleDialog from './ArticleDialog'
 import ArticleView from './ArticleView'
 import './ReadPage.css'
 
@@ -36,6 +37,7 @@ export default function ReadPage() {
   }, [topic])
 
   function handleSelect(t) {
+    if (isGenerating) return // a result would land in the wrong topic's list
     setError(null)
     setOpenId(null)
     setArticles([])
@@ -49,7 +51,7 @@ export default function ReadPage() {
     try {
       const created = await createArticle(topic)
       setArticles((prev) => [created, ...prev])
-      setOpenId(created.id)
+      setOpenId(created.id) // the modal opens only now, when the article is ready
     } catch (err) {
       setError(
         err.status === 404
@@ -92,27 +94,37 @@ export default function ReadPage() {
             <h2>{formatTopic(topic)}</h2>
             <button
               type="button"
-              className="btn btn-primary"
+              className="btn btn-primary read-generate"
               disabled={isGenerating}
               onClick={handleGenerate}
             >
-              {isGenerating ? 'Generating…' : 'Generate new article'}
+              {isGenerating ? (
+                <>
+                  <span className="spinner" aria-hidden="true" />
+                  Generating…
+                </>
+              ) : (
+                'Generate new article'
+              )}
             </button>
           </div>
 
+          {isGenerating && (
+            <div className="read-generating" role="status">
+              <span className="spinner spinner--lg" aria-hidden="true" />
+              <span>Writing your article… this usually takes a few seconds.</span>
+            </div>
+          )}
+
           {error && <p className="form-error">{error}</p>}
-          {articles.length === 0 && !error && (
+          {articles.length === 0 && !error && !isGenerating && (
             <p className="page-subtitle">No articles yet for this topic.</p>
           )}
 
           <ul className="read-list">
             {articles.map((a) => (
               <li key={a.id}>
-                <button
-                  type="button"
-                  className={`read-list-item${a.id === openId ? ' read-list-item--open' : ''}`}
-                  onClick={() => setOpenId(a.id === openId ? null : a.id)}
-                >
+                <button type="button" className="read-list-item" onClick={() => setOpenId(a.id)}>
                   <span>{a.title}</span>
                   <span className="read-list-date">
                     {new Date(a.generated_at).toLocaleDateString()}
@@ -121,15 +133,21 @@ export default function ReadPage() {
               </li>
             ))}
           </ul>
-
-          {opened && (
-            <ArticleView
-              article={opened}
-              isDeleting={deletingId === opened.id}
-              onDelete={() => handleDelete(opened.id)}
-            />
-          )}
         </section>
+      )}
+
+      {opened && (
+        <ArticleDialog
+          title={opened.title}
+          isBusy={deletingId === opened.id}
+          onClose={() => setOpenId(null)}
+        >
+          <ArticleView
+            article={opened}
+            isDeleting={deletingId === opened.id}
+            onDelete={() => handleDelete(opened.id)}
+          />
+        </ArticleDialog>
       )}
     </div>
   )
