@@ -1,0 +1,49 @@
+/* src/features/read/ReadPage.css */
+.read-articles {
+  margin-top: 1.5rem;
+}
+
+.read-articles-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.read-articles-header h2 {
+  margin: 0;
+}
+
+.read-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.read-list-item {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font: inherit;
+  text-align: left;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.read-list-item:hover,
+.read-list-item--open {
+  border-color: var(--color-primary);
+}
+
+.read-list-date {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
