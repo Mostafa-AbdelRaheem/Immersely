@@ -1,5 +1,5 @@
 // src/features/read/ReadPage.jsx
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createArticle, deleteArticle, listArticles } from '../../api/articles'
 import { formatTopic } from '../session/formatTopic'
 import TopicGrid from '../topics/TopicGrid'
@@ -16,17 +16,24 @@ export default function ReadPage() {
   const [deletingId, setDeletingId] = useState(null)
   const [error, setError] = useState(null)
 
-  const load = useCallback(async (t) => {
-    try {
-      setArticles(await listArticles(t))
-    } catch {
-      setError('Could not load your articles. Please try again.')
-    }
-  }, [])
-
   useEffect(() => {
-    if (topic) load(topic)
-  }, [topic, load])
+    if (!topic) return
+    let cancelled = false
+
+    async function load() {
+      try {
+        const data = await listArticles(topic)
+        if (!cancelled) setArticles(data)
+      } catch {
+        if (!cancelled) setError('Could not load your articles. Please try again.')
+      }
+    }
+
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [topic])
 
   function handleSelect(t) {
     setError(null)
