@@ -21,6 +21,9 @@ change a sentence's core wording, vocabulary or meaning.
 makes sense as a whole: a short story, a description or an explanation, \
 whichever fits the sentences best. Keep the language simple and everyday, \
 suitable for a learner.
+- Length matters: write 4 to 5 paragraphs of at least 4 sentences each. \
+Articles that are too short are rejected, so aim for about {target_chars} \
+characters, and expand with extra detail rather than stopping early.
 - Separate paragraphs with a blank line.
 - Put the title ONLY in the title field. text_de must start directly with \
 the first paragraph: no title line, no "Titel:" prefix, no heading.
@@ -60,6 +63,7 @@ def build_article_prompt(topic: str, sentences: list[Sentence]) -> list[tuple[st
         topic=topic,
         min_chars=settings.read_min_chars,
         max_chars=settings.read_max_chars,
+        target_chars=(settings.read_min_chars + settings.read_max_chars) // 2,
         sentences_block=sentences_block,
     )
     return [("system", system), ("human", "Write the article now.")]
