@@ -2,7 +2,7 @@
 import uuid
 
 from app.schemas.article_generation import ArticleOutput
-from app.services.article_logic import verify_article
+from app.services.article_logic import normalize_article, normalize_text, verify_article
 
 MIN_CHARS = 100
 MAX_CHARS = 200
@@ -72,3 +72,20 @@ def test_surrounding_whitespace_does_not_count_toward_length():
     padded = "\n\n" + "x" * 99 + "   \n"  # 99 real chars, 106 raw
     reason = _verify(_article(ids, text_de=padded), ids)
     assert reason is not None and "too short" in reason
+
+
+
+
+def test_normalize_text_converts_literal_backslash_n():
+    assert normalize_text("a\\n\\nb") == "a\n\nb"
+
+
+def test_normalize_text_keeps_real_newlines_and_strips():
+    assert normalize_text("  a\n\nb \n") == "a\n\nb"
+
+
+def test_normalize_article_fixes_both_languages():
+    ids = _ids(1)
+    fixed = normalize_article(_article(ids, text_de="a\\n\\nb", text_en="c\\n\\nd"))
+    assert fixed.text_de == "a\n\nb"
+    assert fixed.text_en == "c\n\nd"

@@ -6,6 +6,21 @@ import uuid
 from app.schemas.article_generation import ArticleOutput
 
 
+def normalize_text(text: str) -> str:
+    """The model sometimes emits paragraph breaks as the two literal
+    characters backslash + n instead of a real newline. Convert them."""
+    return text.replace("\\n", "\n").strip()
+
+
+def normalize_article(output: ArticleOutput) -> ArticleOutput:
+    return output.model_copy(
+        update={
+            "text_de": normalize_text(output.text_de),
+            "text_en": normalize_text(output.text_en),
+        }
+    )
+
+
 def verify_article(
     output: ArticleOutput,
     supplied_ids: list[uuid.UUID],
