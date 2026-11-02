@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { to: '/sentences', label: 'Collections', icon: 'collections' },
   { to: '/review', label: 'Flashcards', icon: 'flashcards' },
   { label: 'Conversations', icon: 'conversation' },
-  { label: 'Read', icon: 'reads' },
+  { to: '/read', label: 'Read', icon: 'reads' },
   { label: 'Settings', icon: 'settings' },
 ]
 
