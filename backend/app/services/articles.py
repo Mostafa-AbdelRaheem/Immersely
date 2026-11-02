@@ -10,7 +10,7 @@ from app.langchain_.article_generation import generate_article
 from app.models.article import Article
 from app.models.sentence import Sentence
 from app.schemas.article_generation import ArticleOutput
-from app.services.article_logic import verify_article
+from app.services.article_logic import normalize_article, verify_article
 from app.services.srs import list_due_sentences
 
 logger = logging.getLogger(__name__)
@@ -63,6 +63,7 @@ async def generate_verified_article(
     for attempt in range(1, MAX_ARTICLE_ATTEMPTS + 1):
         try:
             output = await generate_article(topic, sentences)
+            output = normalize_article(output)
             reason = verify_article(
                 output,
                 supplied_ids,
