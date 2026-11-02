@@ -9,6 +9,7 @@ import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
 import RedirectIfAuthenticated from './features/auth/RedirectIfAuthenticated.jsx'
 import SentencesPage from './features/sentences/SentencesPage.jsx'
 import SessionPage from './features/session/SessionPage.jsx'
+import ReadPage from './features/read/ReadPage.jsx'
 import DashboardPage from './features/stats/DashboardPage.jsx'
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
               <Route path="/" element={<DashboardPage />} />
               <Route path="/sentences" element={<SentencesPage />} />
               <Route path="/review" element={<SessionPage />} />
+              <Route path="/read" element={<ReadPage />} />
               <Route path="/stats" element={<Navigate to="/" replace />} />
             </Route>
           </Route>

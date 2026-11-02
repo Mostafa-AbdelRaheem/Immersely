@@ -1,7 +1,7 @@
 # app/core/config.py
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# app/core/config.py
+
 class Settings(BaseSettings):
     database_url: str
 
@@ -18,8 +18,15 @@ class Settings(BaseSettings):
 
     flip_session_max_cards: int = 500
 
+    # Read articles (N3): how many of the user's sentences feed one article,
+    # and the length window (in characters of German text) the verifier enforces.
+    read_max_sentences: int = 12
+    read_min_chars: int = 1000
+    read_max_chars: int = 1500
+
     timeout: int = 15
 
     model_config = SettingsConfigDict(env_file=".env")
+
 
 settings = Settings()

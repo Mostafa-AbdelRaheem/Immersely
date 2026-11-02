@@ -1,0 +1,39 @@
+/* src/features/read/ArticleView.css */
+.article-view {
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.article-title {
+  margin: 0 0 1rem;
+}
+
+.article-body p {
+  margin: 0 0 1rem;
+  line-height: 1.7;
+}
+
+.article-english {
+  margin-top: 1rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--color-primary);
+  color: var(--color-text-muted);
+}
+
+.article-english p {
+  margin: 0 0 0.75rem;
+  line-height: 1.6;
+}
+
+.article-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.article-delete {
+  color: var(--color-danger);
+}
