@@ -1,0 +1,66 @@
+/* src/features/conversations/ChatMessage.css */
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 80%;
+}
+
+.chat-message--partner {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.chat-message--user {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.chat-bubble {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-radius: var(--radius);
+}
+
+.chat-message--partner .chat-bubble {
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.chat-message--user .chat-bubble {
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+}
+
+/* Neutral on purpose: advice, not an error, and primary/success share a hue in dark mode. */
+.chat-correction {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  background: var(--color-surface-2);
+  border-left: 3px solid var(--color-accent-text);
+  border-radius: var(--radius);
+  overflow-wrap: anywhere;
+}
+
+.chat-correction-label {
+  display: block;
+  margin-bottom: 0.15rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.chat-correction-text {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.chat-correction-note {
+  margin: 0.25rem 0 0;
+  color: var(--color-text-muted);
+}
