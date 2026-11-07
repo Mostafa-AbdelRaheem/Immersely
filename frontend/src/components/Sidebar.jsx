@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: 'dashboard', end: true },
   { to: '/sentences', label: 'Collections', icon: 'collections' },
   { to: '/review', label: 'Flashcards', icon: 'flashcards' },
-  { label: 'Conversations', icon: 'conversation' },
+  { to: '/conversations', label: 'Conversations', icon: 'conversation' },
   { to: '/read', label: 'Read', icon: 'reads' },
   { label: 'Settings', icon: 'settings' },
 ]
