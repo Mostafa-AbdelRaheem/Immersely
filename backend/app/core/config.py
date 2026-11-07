@@ -24,6 +24,14 @@ class Settings(BaseSettings):
     read_min_chars: int = 1000
     read_max_chars: int = 1500
 
+    # Conversations (N4): semantic retrieval policy and request guardrails.
+    # Cosine distance: 0 = identical, larger = less similar.
+    chat_retrieval_max_distance: float = 0.65
+    chat_max_chips: int = 2
+    chat_max_partner_sentences: int = 3
+    chat_max_history_messages: int = 20
+    chat_max_message_chars: int = 500
+
     timeout: int = 15
 
     model_config = SettingsConfigDict(env_file=".env")
