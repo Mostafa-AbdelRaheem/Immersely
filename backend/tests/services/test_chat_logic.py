@@ -9,6 +9,7 @@ from app.services.chat_logic import (
     check_partner_reply,
     normalize_chat_correction,
     sanitize_text,
+    select_within_cutoff,
     validate_history,
 )
 
@@ -178,3 +179,34 @@ def test_four_word_saved_sentence_is_checked():
 def test_three_word_saved_sentence_is_not_checked():
     reply = "Ich bin müde, sagt er."
     assert check_partner_reply(reply, ["Ich bin müde."]) == reply
+
+
+
+
+# ---------- select_within_cutoff ----------
+
+def test_select_keeps_only_items_within_cutoff():
+    ranked = [("a", 0.2), ("b", 0.5), ("c", 0.7)]
+    assert select_within_cutoff(ranked, 0.65, 5) == ["a", "b"]
+
+
+def test_select_respects_limit():
+    ranked = [("a", 0.1), ("b", 0.2), ("c", 0.3)]
+    assert select_within_cutoff(ranked, 0.65, 2) == ["a", "b"]
+
+
+def test_select_boundary_distance_is_included():
+    assert select_within_cutoff([("a", 0.65)], 0.65, 3) == ["a"]
+
+
+def test_select_sorts_best_first():
+    ranked = [("far", 0.6), ("near", 0.1)]
+    assert select_within_cutoff(ranked, 0.65, 1) == ["near"]
+
+
+def test_select_nothing_within_cutoff():
+    assert select_within_cutoff([("a", 0.9)], 0.65, 3) == []
+
+
+def test_select_zero_limit():
+    assert select_within_cutoff([("a", 0.1)], 0.65, 0) == []

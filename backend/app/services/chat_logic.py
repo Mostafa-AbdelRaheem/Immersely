@@ -6,7 +6,10 @@ protect us from the model (ChatOutputError).
 """
 from app.schemas.chat_correction import ChatCorrectionJudgment
 from app.schemas.correction import GrammarVerdict
+from typing import TypeVar
 
+
+T = TypeVar("T")
 VALID_ROLES = ("user", "partner")
 
 # Saved sentences shorter than this (in words) are too generic to count as
@@ -92,3 +95,19 @@ def check_partner_reply(reply: str, saved_sentences: list[str]) -> str:
         if len(needle.split()) >= MIN_WORDS_FOR_LEAK_CHECK and needle in haystack:
             raise ChatOutputError("Partner reply copies a saved sentence verbatim.")
     return clean
+
+
+
+def select_within_cutoff(
+    ranked: list[tuple[T, float]],
+    max_distance: float,
+    limit: int,
+) -> list[T]:
+    """Best `limit` items whose cosine distance is <= max_distance.
+
+    Sorts by distance itself, so it does not depend on the caller's order.
+    """
+    if limit <= 0:
+        return []
+    ordered = sorted(ranked, key=lambda pair: pair[1])
+    return [item for item, dist in ordered if dist <= max_distance][:limit]
