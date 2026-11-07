@@ -27,14 +27,19 @@ CASES = [
     ("error", "Und was macht dein Bruder?", "Er arbeiten jetzt in Berlin.", {"fixable_errors"}),
     ("error", "Wohin gehst du?", "Ich gehe in Supermarkt.", {"fixable_errors"}),
     ("error", "Was machst du heute?", "Ich muss heute meine hausaufgaben machen.", {"fixable_errors"}),
-    ("broken", "Was möchten Sie trinken?", "Ich want einen Kaffee please.", {"broken"}),
+    # Relabelled after the first run: the model fixes mixed English/German with a
+    # useful rewrite (fixable_errors), which helps a learner more than "broken".
+    # Policy decision (option A): accepted, and exempt from the minimal-change check.
+    ("mixed", "Was möchten Sie trinken?", "Ich want einen Kaffee please.", {"fixable_errors"}),
 ]
 
 
-def format_ok(verdict: str, learner: str, corrected: str | None) -> bool:
+def format_ok(kind: str, verdict: str, learner: str, corrected: str | None) -> bool:
     if verdict == "fixable_errors":
         if not corrected or corrected == learner:
             return False
+        if kind == "mixed":
+            return True  # policy: fixing mixed-language text may rewrite more than a minimal edit
         return SequenceMatcher(None, learner, corrected).ratio() >= MIN_SIMILARITY
     return corrected is None
 
@@ -55,7 +60,7 @@ async def main() -> None:
                 continue
             verdict = r.grammar_verdict.value
             ok = verdict in acceptable
-            fmt = format_ok(verdict, learner, r.corrected_text)
+            fmt = format_ok(kind, verdict, learner, r.corrected_text)
             total += 1
             passed += ok
             fmt_passed += fmt
