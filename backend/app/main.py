@@ -12,6 +12,7 @@ from app.api.scenes import router as scenes_router
 from app.api.review import router as review_router
 from app.api.stats import router as stats_router
 from app.api.articles import router as articles_router
+from app.api.conversations import router as conversations_router
 from app.api import srs
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -44,6 +45,7 @@ app.include_router(scenes_router)
 app.include_router(review_router)
 app.include_router(stats_router)
 app.include_router(articles_router)
+app.include_router(conversations_router)
 
 @app.get("/health")
 def health_check():
