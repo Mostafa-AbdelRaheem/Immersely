@@ -107,6 +107,9 @@
 
 .topbar-user { font-size: 0.85rem; color: var(--color-text-muted); }
 
+/* Left side of the top bar: pages can portal controls here (e.g. chat Back). */
+.topbar-slot { margin-right: auto; display: flex; align-items: center; }
+
 .topbar-avatar {
   width: 44px;
   height: 44px;
@@ -127,6 +130,26 @@
   margin: 0 auto;
   padding: 1.5rem 2rem 2.5rem;
 }
+
+
+/* --- Full-height chat window: only while the chat view is on screen --- */
+
+.app-shell:has(.conversations-page--chat) {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.app-shell:has(.conversations-page--chat) .app-main { min-height: 0; }
+
+.app-shell:has(.conversations-page--chat) .app-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
 
 /* --- Small screens: sidebar becomes a scrolling top strip --- */
 
