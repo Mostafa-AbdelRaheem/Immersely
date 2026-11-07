@@ -1,5 +1,7 @@
 // src/features/conversations/ConversationsPage.jsx
 import { useEffect, useReducer, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useOutletContext } from 'react-router-dom'
 import { listScenarios, sendTurn } from '../../api/conversations'
 import ChatMessage from './ChatMessage'
 import ChipRow from './ChipRow'
@@ -15,6 +17,7 @@ function errorMessage(err) {
 }
 
 export default function ConversationsPage() {
+  const { topbarSlot } = useOutletContext()
   const [scenarios, setScenarios] = useState([])
   const [scenariosError, setScenariosError] = useState(null)
   const [scenario, setScenario] = useState(null)
@@ -125,12 +128,16 @@ export default function ConversationsPage() {
 
   return (
     <div className="conversations-page conversations-page--chat">
-      <div className="chat-header">
+      {topbarSlot &&
+        createPortal(
+        <div className="chat-header">
         <button type="button" className="btn btn-secondary" onClick={handleBack}>
-          Back
+            Back
         </button>
         <h1 className="chat-title">{scenario.title}</h1>
-      </div>
+        </div>,
+        topbarSlot,
+      )}
 
       <div className="chat-messages" aria-live="polite">
         {state.messages.map((m) => (
