@@ -1,6 +1,6 @@
 /* src/features/conversations/ChipRow.css */
 .chip-row {
-  display: flex;
+  display: None;
   flex-direction: column;
   gap: 0.4rem;
 }
