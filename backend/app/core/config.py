@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     username_min_length: int = 3
     username_max_length: int = 20
 
+    # Email (N5): which sender implementation to use. Only "console" exists
+    # for now (it prints the message, links included, to the server's stdout).
+    email_backend: str = "console"
+
 
     groq_api_key: str
     groq_model: str = "openai/gpt-oss-20b"
