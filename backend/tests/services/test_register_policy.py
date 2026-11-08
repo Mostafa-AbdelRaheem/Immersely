@@ -40,7 +40,12 @@ class FakeDB:
 
 def register(db, password, email=EMAIL):
     return asyncio.run(
-        auth.register_user(db, UserCreate(email=email, password=password))
+auth.register_user(
+            db,
+            UserCreate(
+                email=email, password=password, name="Mostafa", username="mostafa"
+            ),
+        )
     )
 
 

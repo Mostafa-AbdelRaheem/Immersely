@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr
+from pydantic import AfterValidator, BaseModel, ConfigDict, EmailStr, StringConstraints
 
 # Emails are stored lowercase (the DB enforces it). Normalizing at the schema
 # boundary means every schema that uses this type agrees, with no per-service
@@ -14,6 +14,12 @@ NormalizedEmail = Annotated[EmailStr, AfterValidator(str.lower)]
 class UserCreate(BaseModel):
     email: NormalizedEmail
     password: str
+     # Display name: required for new accounts, trimmed, Unicode allowed.
+    name: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)
+    ]
+    # Normalized and validated in the service (see username_policy.py).
+    username: str
 
 
 class UserOut(BaseModel):

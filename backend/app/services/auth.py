@@ -19,7 +19,11 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin
 from app.services.breached_passwords import is_password_breached
 from app.services.password_policy import PasswordProblem, check_password
-
+from app.services.username_policy import (
+    UsernameProblem,
+    check_username,
+    normalize_username,
+)
 
 class EmailAlreadyRegisteredError(Exception):
     pass
@@ -31,6 +35,17 @@ class WeakPasswordError(Exception):
     def __init__(self, problems: list[PasswordProblem]):
         self.problems = problems
         super().__init__(", ".join(p.value for p in problems))
+
+class InvalidUsernameError(Exception):
+    """Username fails the format rules; carries every problem as codes."""
+
+    def __init__(self, problems: list[UsernameProblem]):
+        self.problems = problems
+        super().__init__(", ".join(p.value for p in problems))
+
+
+class UsernameTakenError(Exception):
+    pass
 
 
 class InvalidCredentialsError(Exception):
@@ -50,36 +65,75 @@ LOCKOUT_WINDOW = timedelta(seconds=60)
 class AccountLockedError(Exception):
     pass
 
+def _violated_constraint(exc: IntegrityError) -> str | None:
+    """Name of the unique/check constraint that failed, if the driver exposes it.
+
+    With asyncpg the name lives on exc.orig.__cause__ (verified against the
+    real database); exc.orig itself has no constraint_name.
+    """
+    cause = getattr(exc.orig, "__cause__", None)
+    return getattr(cause, "constraint_name", None)
+
+
 async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
+    # 1. Cheap local checks first: no network, no DB, no bcrypt.
+    username = normalize_username(user_in.username)
+    username_problems = check_username(
+        username,
+        min_length=settings.username_min_length,
+        max_length=settings.username_max_length,
+    )
+    if username_problems:
+        raise InvalidUsernameError(username_problems)
+
     problems = check_password(
-    user_in.password,
-    email=user_in.email,
-    min_length=settings.password_min_length,
+        user_in.password,
+        email=user_in.email,
+        min_length=settings.password_min_length,
     )
     if problems:
         raise WeakPasswordError(problems)
-    # Network lookup only when the cheap local checks passed. It fails open
-    # (see breached_passwords.py), so an outage never blocks registration.
+
+    # 2. Network lookup only when the cheap local checks passed. It fails open
+    #    (see breached_passwords.py), so an outage never blocks registration.
     if settings.hibp_enabled and await is_password_breached(
         user_in.password, timeout_s=settings.hibp_timeout_s
     ):
         raise WeakPasswordError([PasswordProblem.BREACHED])
 
-
-
+    # 3. Friendly pre-checks (the fast path).
     result = await db.execute(select(User).where(User.email == user_in.email))
-    existing_user = result.scalar_one_or_none()
-    if existing_user is not None:
+    if result.scalar_one_or_none() is not None:
         raise EmailAlreadyRegisteredError(f"Email {user_in.email} is already registered")
+
+    result = await db.execute(select(User).where(User.username == username))
+    if result.scalar_one_or_none() is not None:
+        raise UsernameTakenError(f"Username {username} is already taken")
 
     new_user = User(
         email=user_in.email,
+        username=username,
+        name=user_in.name,
         hashed_password=hash_password(user_in.password),
     )
     db.add(new_user)
-    await db.commit()
+
+    # 4. Backstop for the race: two requests can both pass the pre-checks and
+    #    then collide on the unique constraint. Translate by constraint name,
+    #    and never log or return str(exc): it contains the failing row.
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        constraint = _violated_constraint(exc)
+        if constraint == "users_email_key":
+            raise EmailAlreadyRegisteredError("Email is already registered") from None
+        if constraint == "users_username_key":
+            raise UsernameTakenError("Username is already taken") from None
+        raise  # unknown constraint = a bug; stay loud
 
     return new_user
+
 
 
 async def login_user(db: AsyncSession, credentials: UserLogin) -> tuple[str, str]:
