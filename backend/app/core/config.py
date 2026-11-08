@@ -9,6 +9,13 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
+
+
+    # Accounts (N5): minimum length for NEW passwords only (registration,
+    # reset, change). Existing passwords are never re-checked at login.
+    password_min_length: int = 8
+
+
     groq_api_key: str
     groq_model: str = "openai/gpt-oss-20b"
 

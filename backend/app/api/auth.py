@@ -15,6 +15,7 @@ from app.services.auth import (
     EmailAlreadyRegisteredError,
     InvalidCredentialsError,
     InvalidRefreshTokenError,
+    WeakPasswordError,
     login_user,
     refresh_tokens,
     register_user,
@@ -54,6 +55,16 @@ def _set_auth_cookies(response: Response, refresh_token: str) -> None:
 async def register(request: Request, user_in: UserCreate, db: AsyncSession = Depends(get_db)):
     try:
         user = await register_user(db, user_in)
+
+    except WeakPasswordError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "weak_password",
+                "problems": [p.value for p in exc.problems],
+            },
+        )
+    
     except EmailAlreadyRegisteredError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

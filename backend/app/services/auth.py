@@ -17,10 +17,19 @@ from app.core.security import (
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin
+from app.services.password_policy import PasswordProblem, check_password
 
 
 class EmailAlreadyRegisteredError(Exception):
     pass
+
+class WeakPasswordError(Exception):
+    """Raised when a new password fails the policy. Carries every problem
+    found, as codes the route/frontend can turn into messages."""
+
+    def __init__(self, problems: list[PasswordProblem]):
+        self.problems = problems
+        super().__init__(", ".join(p.value for p in problems))
 
 
 class InvalidCredentialsError(Exception):
@@ -41,6 +50,14 @@ class AccountLockedError(Exception):
     pass
 
 async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
+    problems = check_password(
+    user_in.password,
+    email=user_in.email,
+    min_length=settings.password_min_length,
+    )
+    if problems:
+        raise WeakPasswordError(problems)
+
     result = await db.execute(select(User).where(User.email == user_in.email))
     existing_user = result.scalar_one_or_none()
     if existing_user is not None:
