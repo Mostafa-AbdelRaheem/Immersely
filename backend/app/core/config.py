@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     hibp_enabled: bool = True
     hibp_timeout_s: float = 3.0
 
+    # Usernames (N5): length limits for NEW usernames. The migration keeps
+    # its own frozen copy of these numbers on purpose.
+    username_min_length: int = 3
+    username_max_length: int = 20
+
 
     groq_api_key: str
     groq_model: str = "openai/gpt-oss-20b"
