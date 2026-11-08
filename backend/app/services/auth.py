@@ -17,6 +17,7 @@ from app.core.security import (
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin
+from app.services.breached_passwords import is_password_breached
 from app.services.password_policy import PasswordProblem, check_password
 
 
@@ -57,6 +58,14 @@ async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
     )
     if problems:
         raise WeakPasswordError(problems)
+    # Network lookup only when the cheap local checks passed. It fails open
+    # (see breached_passwords.py), so an outage never blocks registration.
+    if settings.hibp_enabled and await is_password_breached(
+        user_in.password, timeout_s=settings.hibp_timeout_s
+    ):
+        raise WeakPasswordError([PasswordProblem.BREACHED])
+
+
 
     result = await db.execute(select(User).where(User.email == user_in.email))
     existing_user = result.scalar_one_or_none()

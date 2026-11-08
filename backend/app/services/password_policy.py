@@ -10,6 +10,9 @@ from enum import Enum
 class PasswordProblem(str, Enum):
     TOO_SHORT = "too_short"
     SAME_AS_EMAIL = "same_as_email"
+    # Never produced by check_password (pure, no network): the service adds
+    # it after a breached-password lookup so callers see ONE vocabulary.
+    BREACHED = "breached"
 
 
 def check_password(

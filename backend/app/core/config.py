@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     # Accounts (N5): minimum length for NEW passwords only (registration,
     # reset, change). Existing passwords are never re-checked at login.
     password_min_length: int = 8
+    # Breached-password check (N5): Pwned Passwords k-anonymity lookup.
+    # It fails open, so an outage never blocks registration.
+    hibp_enabled: bool = True
+    hibp_timeout_s: float = 3.0
 
 
     groq_api_key: str
