@@ -9,7 +9,7 @@ from app.core.db import get_db
 from app.core.limiter import limiter
 from app.core.security import generate_csrf_token
 from app.models.user import User
-from app.schemas.user import TokenPair, UserCreate, UserLogin, UserOut
+from app.schemas.user import UserCreate, UserLogin, UserOut
 from app.services.auth import (
     AccountLockedError,
     EmailAlreadyRegisteredError,
