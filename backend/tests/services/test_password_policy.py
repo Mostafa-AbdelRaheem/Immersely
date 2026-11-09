@@ -61,3 +61,18 @@ def test_casefold_handles_german_eszett():
 def test_length_counts_characters_not_bytes():
     # 8 characters, 15 bytes in UTF-8: must pass an 8-character minimum.
     assert problems("ÄÖÜäöüß!") == []
+
+
+def test_accepts_exactly_72_bytes():
+    assert problems("a" * 72) == []
+
+
+def test_rejects_73_bytes():
+    assert problems("a" * 73) == [PasswordProblem.TOO_LONG]
+
+
+def test_limit_counts_bytes_not_characters():
+    # 36 x "ü" = 36 characters but 72 bytes (ok); 37 x "ü" = 74 bytes (too long),
+    # even though 37 characters is far below 72: a character count would miss it.
+    assert problems("ü" * 36) == []
+    assert problems("ü" * 37) == [PasswordProblem.TOO_LONG]

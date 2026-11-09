@@ -6,9 +6,14 @@ file stays trivially unit-testable (same pattern as correction_logic.py).
 
 from enum import Enum
 
-
+# bcrypt only uses the first 72 BYTES of a password, and bcrypt 4.0.1 truncates
+# silently (verified in this project's environment), so a longer password must
+# be rejected rather than quietly weakened. An algorithm limit, not a tunable
+# policy: hence a constant, not a Setting.
+BCRYPT_MAX_BYTES = 72
 class PasswordProblem(str, Enum):
     TOO_SHORT = "too_short"
+    TOO_LONG = "too_long"
     SAME_AS_EMAIL = "same_as_email"
     # Never produced by check_password (pure, no network): the service adds
     # it after a breached-password lookup so callers see ONE vocabulary.

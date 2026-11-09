@@ -138,3 +138,10 @@ def test_strong_password_with_taken_email_raises_duplicate(monkeypatch):
         register(db, STRONG)
     assert len(calls) == 1
     assert db.added == []
+
+def test_too_long_password_is_rejected_without_a_lookup_or_db_query():
+    db = FakeDB()
+    with pytest.raises(auth.WeakPasswordError) as exc:
+        register(db, "x" * 73)  # a lookup here would hit the tripwire
+    assert exc.value.problems == [PasswordProblem.TOO_LONG]
+    assert db.executed == 0
