@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, Response, status
@@ -10,6 +11,7 @@ from app.core.limiter import limiter
 from app.core.security import generate_csrf_token
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserOut
+from app.schemas.user import UserCreate, UserLogin, UserOut, VerifyEmailIn
 from app.services.auth import (
     AccountLockedError,
     EmailAlreadyRegisteredError,
@@ -23,7 +25,18 @@ from app.services.auth import (
     register_user,
 )
 
+from app.services.email_sender import EmailSender, EmailSendError, get_email_sender
+from app.services.email_tokens import InvalidTokenError
+from app.services.email_verification import (
+    EmailAlreadyVerifiedError,
+    send_verification_email,
+    verify_email,
+)
+
+
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+logger = logging.getLogger(__name__)
 
 REFRESH_COOKIE_NAME = "refresh_token"
 CSRF_COOKIE_NAME = "csrf_token"
@@ -154,3 +167,46 @@ async def logout(response: Response):
 @router.get("/me", response_model=UserOut)
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+
+@router.post("/verify-email")
+@limiter.limit("10/minute")
+async def verify_email_endpoint(
+    request: Request,
+    body: VerifyEmailIn,
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        await verify_email(db, body.token)
+    except InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "invalid_token"},
+        )
+    return {"detail": "Email verified"}
+
+
+@router.post("/resend-verification")
+@limiter.limit("3/minute")
+async def resend_verification(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    sender: EmailSender = Depends(get_email_sender),
+):
+    try:
+        await send_verification_email(db, sender, current_user)
+    except EmailAlreadyVerifiedError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": "already_verified"},
+        )
+    except EmailSendError as exc:
+        # Class name only: provider messages can echo the address back.
+        logger.warning("Verification email failed to send: %s", type(exc).__name__)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={"code": "email_send_failed"},
+        )
+    return {"detail": "Verification email sent"}

@@ -36,3 +36,9 @@ class UserOut(BaseModel):
 class UserLogin(BaseModel):
     email: NormalizedEmail
     password: str
+
+class VerifyEmailIn(BaseModel):
+    # Tokens are 43 characters; 200 is a sanity cap on what we will even hash.
+    token: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)
+    ]
