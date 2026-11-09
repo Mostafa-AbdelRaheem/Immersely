@@ -33,6 +33,17 @@ class Settings(BaseSettings):
     # for now (it prints the message, links included, to the server's stdout).
     email_backend: str = "console"
 
+    # Email tokens (N5): how long a single-use link stays valid, in minutes.
+    # Verification is generous (the mail may be read tomorrow). Reset is short
+    # because it is an account-takeover key, and OWASP says under 24 h, so a
+    # value above 1440 fails at startup.
+    verify_email_token_ttl_minutes: int = Field(default=1440, ge=1)
+    reset_password_token_ttl_minutes: int = Field(default=30, ge=1, le=1440)
+
+    # Base URL for links inside emails. NEVER derived from the request's Host
+    # header (host-header injection). Must be the real https origin in production.
+    frontend_base_url: str = "http://localhost:5173"
+
 
     groq_api_key: str
     groq_model: str = "openai/gpt-oss-20b"

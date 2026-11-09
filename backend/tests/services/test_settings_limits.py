@@ -27,3 +27,23 @@ def test_password_max_bytes_may_be_lowered():
 def test_password_max_bytes_outside_1_to_72_is_rejected(bad):
     with pytest.raises(ValidationError):
         build(password_max_bytes=bad)
+
+def test_email_token_settings_defaults():
+    s = build()
+    assert s.verify_email_token_ttl_minutes == 1440
+    assert s.reset_password_token_ttl_minutes == 30
+    assert s.frontend_base_url == "http://localhost:5173"
+
+
+def test_reset_token_lifetime_is_capped_at_24_hours():
+    assert build(reset_password_token_ttl_minutes=1440).reset_password_token_ttl_minutes == 1440
+    with pytest.raises(ValidationError):
+        build(reset_password_token_ttl_minutes=1441)
+
+
+@pytest.mark.parametrize(
+    "field", ["verify_email_token_ttl_minutes", "reset_password_token_ttl_minutes"]
+)
+def test_token_lifetimes_must_be_positive(field):
+    with pytest.raises(ValidationError):
+        build(**{field: 0})
