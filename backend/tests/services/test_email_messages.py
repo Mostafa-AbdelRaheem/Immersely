@@ -3,6 +3,8 @@ import pytest
 from app.services.email_messages import (
     build_link,
     describe_minutes,
+    password_changed_message,
+    password_reset_message,
     verification_message,
 )
 
@@ -87,3 +89,63 @@ def test_body_without_a_name_falls_back_to_a_generic_greeting():
 
 def test_the_link_appears_exactly_once():
     assert message().text_body.count(LINK) == 1
+
+def reset_message(**overrides):
+    kwargs = dict(
+        to="mostafa@example.com", name="Mostafa", link=LINK, valid_for_minutes=30
+    )
+    kwargs.update(overrides)
+    return password_reset_message(**kwargs)
+
+
+def test_reset_message_is_addressed_and_titled():
+    m = reset_message()
+    assert m.to == "mostafa@example.com"
+    assert m.subject == "Reset your Immersely password"
+
+
+def test_reset_body_contains_the_link_the_name_and_the_lifetime():
+    body = reset_message().text_body
+    assert LINK in body
+    assert "Hi Mostafa," in body
+    assert "30 minutes" in body
+
+
+def test_reset_body_says_the_link_works_once_and_can_be_ignored():
+    body = reset_message().text_body
+    assert "works once" in body
+    assert "ignore" in body
+
+
+def test_reset_link_appears_exactly_once():
+    assert reset_message().text_body.count(LINK) == 1
+
+
+def test_reset_without_a_name_uses_a_generic_greeting():
+    body = reset_message(name=None).text_body
+    assert "Hi there," in body
+    assert "None" not in body
+
+
+def test_changed_notice_is_addressed_and_titled():
+    m = password_changed_message(to="mostafa@example.com", name="Mostafa")
+    assert m.to == "mostafa@example.com"
+    assert m.subject == "Your Immersely password was changed"
+    assert "Hi Mostafa," in m.text_body
+
+
+def test_changed_notice_contains_no_link():
+    body = password_changed_message(to="a@b.com", name="Mostafa").text_body
+    assert "http" not in body
+    assert "#token" not in body
+
+
+def test_changed_notice_without_a_name_uses_a_generic_greeting():
+    body = password_changed_message(to="a@b.com", name=None).text_body
+    assert "Hi there," in body
+    assert "None" not in body
+
+
+def test_changed_notice_tells_the_user_what_to_do_if_it_was_not_them():
+    body = password_changed_message(to="a@b.com", name="Mostafa").text_body
+    assert "request a new password reset" in body

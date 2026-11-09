@@ -40,3 +40,36 @@ def verification_message(
         "If you didn't create this account, you can safely ignore this email.\n"
     )
     return EmailMessage(to=to, subject="Verify your email for Immersely", text_body=body)
+
+
+
+def password_reset_message(
+    *, to: str, name: str | None, link: str, valid_for_minutes: int
+) -> EmailMessage:
+    greeting = f"Hi {name}," if name else "Hi there,"
+    body = (
+        f"{greeting}\n\n"
+        "We received a request to reset your Immersely password. Open this link "
+        "to choose a new one:\n\n"
+        f"{link}\n\n"
+        f"The link works once and expires in {describe_minutes(valid_for_minutes)}. "
+        "If you didn't request this, you can safely ignore this email: your "
+        "password will not change.\n"
+    )
+    return EmailMessage(to=to, subject="Reset your Immersely password", text_body=body)
+
+
+def password_changed_message(*, to: str, name: str | None) -> EmailMessage:
+    """Notice after a successful reset. Deliberately contains NO link: a
+    clickable link in a security notice is what phishing emails imitate."""
+    greeting = f"Hi {name}," if name else "Hi there,"
+    body = (
+        f"{greeting}\n\n"
+        "The password for your Immersely account was just changed. For your "
+        "security, other devices will be asked to sign in again shortly.\n\n"
+        "If this was you, no action is needed. If it wasn't, request a new "
+        "password reset from the sign-in page right away.\n"
+    )
+    return EmailMessage(
+        to=to, subject="Your Immersely password was changed", text_body=body
+    )
