@@ -67,7 +67,12 @@ def _set_auth_cookies(response: Response, refresh_token: str) -> None:
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
-async def register(request: Request, user_in: UserCreate, db: AsyncSession = Depends(get_db)):
+async def register(
+    request: Request,
+    user_in: UserCreate,
+    db: AsyncSession = Depends(get_db),
+    sender: EmailSender = Depends(get_email_sender),
+):
     try:
         user = await register_user(db, user_in)
     except InvalidUsernameError as exc:
@@ -97,6 +102,16 @@ async def register(request: Request, user_in: UserCreate, db: AsyncSession = Dep
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail={"code": "username_taken"},
+        )
+
+    # Best-effort: the account exists either way. A failed send is tolerated
+    # (the user can request a resend); anything else is a bug and stays loud.
+    try:
+        await send_verification_email(db, sender, user)
+    except EmailSendError as exc:
+        # Class name only: provider messages can echo the address back.
+        logger.warning(
+            "Verification email failed after registration: %s", type(exc).__name__
         )
     return user
 
