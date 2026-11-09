@@ -18,7 +18,13 @@ from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin
 from app.services.breached_passwords import is_password_breached
-from app.services.password_policy import PasswordProblem, check_password
+
+from app.services.password_policy import (
+    PasswordProblem,
+    check_password,
+    normalize_password,
+)
+
 from app.services.username_policy import (
     UsernameProblem,
     check_username,
@@ -85,9 +91,12 @@ async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
     )
     if username_problems:
         raise InvalidUsernameError(username_problems)
+    # Normalize ONCE: the policy, the breach lookup and the hash must all see
+    # the same bytes ("ü" as one code point vs "u" + combining mark).
+    password = normalize_password(user_in.password)
 
     problems = check_password(
-        user_in.password,
+        password,
         email=user_in.email,
         min_length=settings.password_min_length,
         max_bytes=settings.password_max_bytes,
@@ -98,7 +107,7 @@ async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
     # 2. Network lookup only when the cheap local checks passed. It fails open
     #    (see breached_passwords.py), so an outage never blocks registration.
     if settings.hibp_enabled and await is_password_breached(
-        user_in.password, timeout_s=settings.hibp_timeout_s
+        password, timeout_s=settings.hibp_timeout_s
     ):
         raise WeakPasswordError([PasswordProblem.BREACHED])
 
@@ -115,7 +124,7 @@ async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
         email=user_in.email,
         username=username,
         name=user_in.name,
-        hashed_password=hash_password(user_in.password),
+        hashed_password=hash_password(password),
     )
     db.add(new_user)
 
@@ -152,7 +161,9 @@ async def login_user(db: AsyncSession, credentials: UserLogin) -> tuple[str, str
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
-    if user is None or not verify_password(credentials.password, user.hashed_password):
+    if user is None or not verify_password(
+        normalize_password(credentials.password), user.hashed_password
+    ):
         recent_attempts.append(now)
         _failed_login_attempts[email] = recent_attempts
         raise InvalidCredentialsError("Invalid email or password")
