@@ -4,6 +4,7 @@ No I/O and no Settings import: the caller passes the limits in, so this
 file stays trivially unit-testable (same pattern as correction_logic.py).
 """
 
+import unicodedata
 from enum import Enum
 
 
@@ -40,3 +41,20 @@ def check_password(
         problems.append(PasswordProblem.SAME_AS_EMAIL)
 
     return problems
+
+# The Unicode form applied before checking or hashing a password. A data-format
+# invariant, NOT a tunable: changing it changes what gets hashed for every
+# account, so it must never be an environment-driven setting.
+PASSWORD_NORMALIZATION_FORM = "NFC"
+
+
+def normalize_password(password: str) -> str:
+    """Return `password` in canonical Unicode form (NFC).
+
+    Apply BEFORE the policy checks, the breach lookup and hashing, so the
+    same visible password always yields the same bytes ("ü" typed as one
+    code point or as "u" + combining mark). It does not trim whitespace
+    (spaces are valid in passphrases) and does not fold compatibility
+    characters, which NFKC would.
+    """
+    return unicodedata.normalize(PASSWORD_NORMALIZATION_FORM, password)
