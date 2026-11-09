@@ -4,11 +4,18 @@ from app.services.password_policy import PasswordProblem, check_password
 
 EMAIL = "mostafa@example.com"
 MIN = 8
+MAX_BYTES = 72
 
 
-def problems(password: str, email: str = EMAIL, min_length: int = MIN):
-    return check_password(password, email=email, min_length=min_length)
-
+def problems(
+    password: str,
+    email: str = EMAIL,
+    min_length: int = MIN,
+    max_bytes: int = MAX_BYTES,
+):
+    return check_password(
+        password, email=email, min_length=min_length, max_bytes=max_bytes
+    )
 
 def test_accepts_password_at_exact_min_length():
     assert problems("x" * MIN) == []
@@ -63,16 +70,21 @@ def test_length_counts_characters_not_bytes():
     assert problems("ÄÖÜäöüß!") == []
 
 
-def test_accepts_exactly_72_bytes():
-    assert problems("a" * 72) == []
+def test_accepts_exactly_the_byte_limit():
+    assert problems("a" * MAX_BYTES) == []
 
 
-def test_rejects_73_bytes():
-    assert problems("a" * 73) == [PasswordProblem.TOO_LONG]
+def test_rejects_one_byte_over_the_limit():
+    assert problems("a" * (MAX_BYTES + 1)) == [PasswordProblem.TOO_LONG]
 
 
 def test_limit_counts_bytes_not_characters():
-    # 36 x "ü" = 36 characters but 72 bytes (ok); 37 x "ü" = 74 bytes (too long),
-    # even though 37 characters is far below 72: a character count would miss it.
-    assert problems("ü" * 36) == []
-    assert problems("ü" * 37) == [PasswordProblem.TOO_LONG]
+    # "ü" is 2 bytes: exactly MAX_BYTES // 2 of them fit, one more does not,
+    # even though that is far below MAX_BYTES *characters*.
+    assert problems("ü" * (MAX_BYTES // 2)) == []
+    assert problems("ü" * (MAX_BYTES // 2 + 1)) == [PasswordProblem.TOO_LONG]
+
+
+def test_the_limit_is_the_injected_parameter():
+    assert problems("a" * 11, max_bytes=10) == [PasswordProblem.TOO_LONG]
+    assert problems("a" * 10, max_bytes=10) == []

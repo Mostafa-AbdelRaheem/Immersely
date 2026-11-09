@@ -90,6 +90,7 @@ async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
         user_in.password,
         email=user_in.email,
         min_length=settings.password_min_length,
+        max_bytes=settings.password_max_bytes,
     )
     if problems:
         raise WeakPasswordError(problems)

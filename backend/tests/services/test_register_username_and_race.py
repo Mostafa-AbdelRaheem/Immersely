@@ -82,6 +82,7 @@ def lookup_calls(monkeypatch):
     """Pin settings, skip bcrypt, and record HIBP lookups (never real ones)."""
     monkeypatch.setattr(auth.settings, "hibp_enabled", True)
     monkeypatch.setattr(auth.settings, "password_min_length", 8)
+    monkeypatch.setattr(auth.settings, "password_max_bytes", 72)
     monkeypatch.setattr(auth.settings, "username_min_length", 3)
     monkeypatch.setattr(auth.settings, "username_max_length", 20)
     monkeypatch.setattr(auth, "hash_password", lambda password: SECRET_HASH)

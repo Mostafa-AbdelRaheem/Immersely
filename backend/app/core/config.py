@@ -1,4 +1,5 @@
 # app/core/config.py
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +15,10 @@ class Settings(BaseSettings):
     # Accounts (N5): minimum length for NEW passwords only (registration,
     # reset, change). Existing passwords are never re-checked at login.
     password_min_length: int = 8
+    # bcrypt only uses the first 72 BYTES of a password and bcrypt 4.0.1
+    # truncates silently (verified here). You may set this LOWER in .env, but a
+    # value above 72 fails at startup instead of silently weakening passwords.
+    password_max_bytes: int = Field(default=72, ge=1, le=72)
     # Breached-password check (N5): Pwned Passwords k-anonymity lookup.
     # It fails open, so an outage never blocks registration.
     hibp_enabled: bool = True

@@ -6,11 +6,7 @@ file stays trivially unit-testable (same pattern as correction_logic.py).
 
 from enum import Enum
 
-# bcrypt only uses the first 72 BYTES of a password, and bcrypt 4.0.1 truncates
-# silently (verified in this project's environment), so a longer password must
-# be rejected rather than quietly weakened. An algorithm limit, not a tunable
-# policy: hence a constant, not a Setting.
-BCRYPT_MAX_BYTES = 72
+
 class PasswordProblem(str, Enum):
     TOO_SHORT = "too_short"
     TOO_LONG = "too_long"
@@ -21,9 +17,12 @@ class PasswordProblem(str, Enum):
 
 
 def check_password(
-    password: str, *, email: str, min_length: int
+    password: str, *, email: str, min_length: int, max_bytes: int
 ) -> list[PasswordProblem]:
     """Return every policy problem with `password` (empty list = acceptable).
+
+    `max_bytes` is measured in BYTES, not characters, because bcrypt counts
+    bytes ("ü" is 2). Its value and its ceiling live in Settings.
 
     Deliberately NOT done: composition rules (NIST says don't), trimming
     (spaces are valid in passphrases), and substring matching (NIST
@@ -33,6 +32,8 @@ def check_password(
 
     if len(password) < min_length:
         problems.append(PasswordProblem.TOO_SHORT)
+    if len(password.encode("utf-8")) > max_bytes:
+        problems.append(PasswordProblem.TOO_LONG)
 
     local_part = email.split("@", 1)[0]
     if password.casefold() in {email.casefold(), local_part.casefold()}:
