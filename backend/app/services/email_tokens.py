@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import update
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -77,6 +78,7 @@ async def consume_token(
     raw_token: str,
     purpose: TokenPurpose,
     *,
+    commit: bool = True,
     now: datetime | None = None,
 ) -> uuid.UUID:
     """Atomically use a token once and return its user_id.
@@ -85,6 +87,10 @@ async def consume_token(
     simultaneous requests cannot both succeed: the second finds used_at already
     set. The rule (unused AND expires_at > now) matches token_logic.is_usable.
     `now` is the app's clock for issuing and consuming alike (no app/DB skew).
+    With commit=False the claim stays in the caller's open transaction and the
+    row stays locked until the caller commits or rolls back, so "burn the
+    token + change the password + revoke sessions" can be one atomic unit.
+    The caller MUST then commit or roll back.
     """
     now = now or datetime.now(timezone.utc)
     result = await db.execute(
@@ -102,5 +108,36 @@ async def consume_token(
     user_id = result.scalar_one_or_none()
     if user_id is None:
         raise InvalidTokenError("Invalid or expired token")
-    await db.commit()
+    if commit:
+        await db.commit()
+    return user_id
+
+
+
+async def peek_token(
+    db: AsyncSession,
+    raw_token: str,
+    purpose: TokenPurpose,
+    *,
+    now: datetime | None = None,
+) -> uuid.UUID:
+    """Read-only: whose token is this, if it is still usable?
+
+    Changes nothing, so a caller can validate the user's input first and only
+    then claim the token with consume_token (a weak new password must not burn
+    the link). ADVISORY: consume_token stays the authority, and a token can
+    still lose a race between the peek and the claim.
+    """
+    now = now or datetime.now(timezone.utc)
+    result = await db.execute(
+        select(EmailToken.user_id).where(
+            EmailToken.token_hash == hash_token(raw_token),
+            EmailToken.purpose == purpose.value,
+            EmailToken.used_at.is_(None),
+            EmailToken.expires_at > now,
+        )
+    )
+    user_id = result.scalar_one_or_none()
+    if user_id is None:
+        raise InvalidTokenError("Invalid or expired token")
     return user_id

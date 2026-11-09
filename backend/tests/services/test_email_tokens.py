@@ -119,3 +119,58 @@ def test_consume_sends_the_hash_never_the_raw_token():
 @pytest.mark.parametrize("purpose", list(TokenPurpose))
 def test_every_purpose_has_a_positive_lifetime(purpose):
     assert svc._ttl(purpose) > timedelta(0)
+
+def peek(db, raw="raw-token", purpose=TokenPurpose.VERIFY_EMAIL):
+    return asyncio.run(svc.peek_token(db, raw, purpose, now=NOW))
+
+
+def test_consume_can_leave_the_commit_to_the_caller():
+    db = FakeDB(result_value=USER_ID)
+    result = asyncio.run(
+        svc.consume_token(
+            db, "raw-token", TokenPurpose.VERIFY_EMAIL, now=NOW, commit=False
+        )
+    )
+    assert result == USER_ID
+    assert db.commits == 0
+
+
+def test_consume_with_commit_false_still_raises_on_a_bad_token():
+    db = FakeDB(result_value=None)
+    with pytest.raises(svc.InvalidTokenError):
+        asyncio.run(
+            svc.consume_token(
+                db, "raw-token", TokenPurpose.VERIFY_EMAIL, now=NOW, commit=False
+            )
+        )
+    assert db.commits == 0
+
+
+def test_peek_returns_the_user_id_and_changes_nothing():
+    db = FakeDB(result_value=USER_ID)
+    assert peek(db) == USER_ID
+    assert db.commits == 0
+    assert db.added == []
+
+
+def test_peek_raises_when_no_row_matches():
+    with pytest.raises(svc.InvalidTokenError):
+        peek(FakeDB(result_value=None))
+
+
+def test_peek_is_a_select_not_an_update():
+    db = FakeDB(result_value=USER_ID)
+    peek(db)
+    sql = str(db.statements[0].compile(dialect=postgresql.dialect())).upper()
+    assert sql.lstrip().startswith("SELECT")
+    assert "UPDATE" not in sql
+
+
+def test_peek_sends_the_hash_the_purpose_and_the_clock():
+    db = FakeDB(result_value=USER_ID)
+    peek(db, raw="the-raw-token", purpose=TokenPurpose.RESET_PASSWORD)
+    params = params_of(db.statements[0])
+    assert hash_token("the-raw-token") in params
+    assert "the-raw-token" not in params
+    assert "reset_password" in params
+    assert NOW in params
