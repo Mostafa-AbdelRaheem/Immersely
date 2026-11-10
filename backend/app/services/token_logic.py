@@ -30,3 +30,17 @@ def is_usable(*, expires_at: datetime, used_at: datetime | None, now: datetime) 
     on purpose rather than being silently compared.
     """
     return used_at is None and now < expires_at
+
+def is_in_cooldown(
+    *, last_issued_at: datetime | None, now: datetime, cooldown: timedelta
+) -> bool:
+    """True while a new token must NOT be issued for this user and purpose.
+
+    No previous token means no cooldown. Exactly `cooldown` after the last
+    token counts as over (strict `<`, same style as is_usable). A timestamp
+    in the future (clock skew) counts as in cooldown: failing toward "send
+    less mail". Naive vs aware datetimes raise TypeError on purpose.
+    """
+    if last_issued_at is None:
+        return False
+    return now - last_issued_at < cooldown
