@@ -80,6 +80,28 @@ def _violated_constraint(exc: IntegrityError) -> str | None:
     cause = getattr(exc.orig, "__cause__", None)
     return getattr(cause, "constraint_name", None)
 
+async def validate_new_password(raw_password: str, *, email: str) -> str:
+    """Normalize, then run the policy and the breach check.
+
+    Returns the NORMALIZED password. Callers must hash the returned value,
+    never the raw input, or login (which normalizes) would not match.
+    Raises WeakPasswordError carrying every problem found.
+    """
+    password = normalize_password(raw_password)
+    problems = check_password(
+        password,
+        email=email,
+        min_length=settings.password_min_length,
+        max_bytes=settings.password_max_bytes,
+    )
+    if problems:
+        raise WeakPasswordError(problems)
+    if settings.hibp_enabled and await is_password_breached(
+        password, timeout_s=settings.hibp_timeout_s
+    ):
+        raise WeakPasswordError([PasswordProblem.BREACHED])
+    return password
+
 
 async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
     # 1. Cheap local checks first: no network, no DB, no bcrypt.
@@ -91,25 +113,9 @@ async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
     )
     if username_problems:
         raise InvalidUsernameError(username_problems)
-    # Normalize ONCE: the policy, the breach lookup and the hash must all see
-    # the same bytes ("ü" as one code point vs "u" + combining mark).
-    password = normalize_password(user_in.password)
-
-    problems = check_password(
-        password,
-        email=user_in.email,
-        min_length=settings.password_min_length,
-        max_bytes=settings.password_max_bytes,
-    )
-    if problems:
-        raise WeakPasswordError(problems)
-
-    # 2. Network lookup only when the cheap local checks passed. It fails open
-    #    (see breached_passwords.py), so an outage never blocks registration.
-    if settings.hibp_enabled and await is_password_breached(
-        password, timeout_s=settings.hibp_timeout_s
-    ):
-        raise WeakPasswordError([PasswordProblem.BREACHED])
+    # 2. Password policy + breach lookup, shared with reset/change-password.
+    #    Returns the NORMALIZED password; that is what we must hash below.
+    password = await validate_new_password(user_in.password, email=user_in.email)
 
     # 3. Friendly pre-checks (the fast path).
     result = await db.execute(select(User).where(User.email == user_in.email))
