@@ -42,3 +42,22 @@ class VerifyEmailIn(BaseModel):
     token: Annotated[
         str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)
     ]
+
+# Payload sanity cap, NOT the password rule. The real limit (72 bytes) lives in
+# Settings and the policy; this only stops a huge body being normalized.
+# It must stay well above 72 so oversized passwords still get a `too_long`
+# problem code instead of a generic 422.
+MAX_PASSWORD_INPUT_CHARS = 1024
+
+
+class ForgotPasswordIn(BaseModel):
+    email: NormalizedEmail
+
+
+class ResetPasswordIn(BaseModel):
+    token: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)
+    ]
+    # No strip_whitespace: the password policy has no trimming, and a trimmed
+    # value would hash differently from what the user typed at registration.
+    new_password: Annotated[str, StringConstraints(max_length=MAX_PASSWORD_INPUT_CHARS)]
