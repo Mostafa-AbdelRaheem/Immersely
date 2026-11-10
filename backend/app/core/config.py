@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     verify_email_token_ttl_minutes: int = Field(default=1440, ge=1)
     reset_password_token_ttl_minutes: int = Field(default=30, ge=1, le=1440)
 
+    # Forgot-password cooldown (N5): minimum seconds between reset emails for
+    # the SAME account. Stops someone using our endpoint to flood a victim's
+    # inbox (slowapi limits per IP, which an attacker can rotate). The floor
+    # of 1 prevents 0, which would disable the protection silently.
+    reset_password_cooldown_s: int = Field(default=60, ge=1)
+
     # Base URL for links inside emails. NEVER derived from the request's Host
     # header (host-header injection). Must be the real https origin in production.
     frontend_base_url: str = "http://localhost:5173"
