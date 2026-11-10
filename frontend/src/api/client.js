@@ -17,6 +17,22 @@ function getCsrfTokenFromCookie() {
   return match ? decodeURIComponent(match[1]) : null
 }
 
+// Same Error as before (message + status), plus `detail`: the server's
+// `detail` field (e.g. { code: 'weak_password', problems: [...] }), or null
+// when the body is missing or is not JSON. Never throws while building.
+async function buildApiError(response) {
+  const err = new Error(`API error: ${response.status}`)
+  err.status = response.status
+  err.detail = null
+  try {
+    const body = await response.json()
+    err.detail = body?.detail ?? null
+  } catch {
+    // empty or non-JSON body: keep detail = null
+  }
+  return err
+}
+
 let refreshInFlight = null
 
 export async function refreshAccessToken() {
@@ -75,9 +91,7 @@ export async function apiFetch(path, options = {}) {
       })
 
       if (!retryResponse.ok) {
-        const err = new Error(`API error: ${retryResponse.status}`)
-        err.status = retryResponse.status
-        throw err
+        throw await buildApiError(retryResponse)
       }
 
       if (retryResponse.status === 204) {
@@ -91,13 +105,12 @@ export async function apiFetch(path, options = {}) {
     }
     const err = new Error('API error: 401 (session expired)')
     err.status = 401
+    err.detail = null
     throw err
   }
 
   if (!response.ok) {
-    const err = new Error(`API error: ${response.status}`)
-    err.status = response.status
-    throw err
+    throw await buildApiError(response)
   }
 
   if (response.status === 204) {
