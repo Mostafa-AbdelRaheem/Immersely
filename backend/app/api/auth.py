@@ -1,7 +1,18 @@
 import logging
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, Response, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Cookie,
+    Depends,
+    Header,
+    HTTPException,
+    Request,
+    Response,
+    status,
+)
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -11,7 +22,15 @@ from app.core.limiter import limiter
 from app.core.security import generate_csrf_token
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserOut
-from app.schemas.user import UserCreate, UserLogin, UserOut, VerifyEmailIn
+
+from app.schemas.user import (
+    ForgotPasswordIn,
+    ResetPasswordIn,
+    UserCreate,
+    UserLogin,
+    UserOut,
+    VerifyEmailIn,
+)
 from app.services.auth import (
     AccountLockedError,
     EmailAlreadyRegisteredError,
@@ -25,13 +44,21 @@ from app.services.auth import (
     register_user,
 )
 
-from app.services.email_sender import EmailSender, EmailSendError, get_email_sender
+from app.services.email_sender import (
+    EmailMessage,
+    EmailSender,
+    EmailSendError,
+    get_email_sender,
+)
+
 from app.services.email_tokens import InvalidTokenError
 from app.services.email_verification import (
     EmailAlreadyVerifiedError,
     send_verification_email,
     verify_email,
 )
+
+from app.services.password_reset import request_password_reset, reset_password
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -225,3 +252,66 @@ async def resend_verification(
             detail={"code": "email_send_failed"},
         )
     return {"detail": "Verification email sent"}
+
+
+
+
+# One constant for every forgot-password outcome (unknown email, cooldown, sent),
+# so the response can never differ between them.
+FORGOT_PASSWORD_RESPONSE = {
+    "detail": "If an account exists for that email, we've sent a reset link."
+}
+
+
+async def _send_in_background(sender: EmailSender, message: EmailMessage) -> None:
+    """Runs after the response. Holds no DB session, so neither mail latency nor
+    a failure here can change what the client saw."""
+    try:
+        await sender.send(message)
+    except EmailSendError as exc:
+        # Class name only: provider messages can echo the address back.
+        logger.warning("Background email failed to send: %s", type(exc).__name__)
+
+
+@router.post("/forgot-password")
+@limiter.limit("3/minute")
+async def forgot_password(
+    request: Request,
+    body: ForgotPasswordIn,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    sender: EmailSender = Depends(get_email_sender),
+):
+    # None = unknown email OR cooldown active. Same response either way.
+    message = await request_password_reset(db, body.email)
+    if message is not None:
+        background_tasks.add_task(_send_in_background, sender, message)
+    return FORGOT_PASSWORD_RESPONSE
+
+
+@router.post("/reset-password")
+@limiter.limit("10/minute")
+async def reset_password_endpoint(
+    request: Request,
+    body: ResetPasswordIn,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    sender: EmailSender = Depends(get_email_sender),
+):
+    try:
+        notice = await reset_password(db, body.token, body.new_password)
+    except InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "invalid_token"},
+        )
+    except WeakPasswordError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "weak_password",
+                "problems": [p.value for p in exc.problems],
+            },
+        )
+    background_tasks.add_task(_send_in_background, sender, notice)
+    return {"detail": "Password updated"}
