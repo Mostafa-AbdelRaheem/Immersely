@@ -48,10 +48,10 @@ export function AuthProvider({ children }) {
     setUser(me)
   }
 
-  async function register(email, password) {
+  async function register({ name, username, email, password }) {
     await apiFetch('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ name, username, email, password }),
     })
   }
 
