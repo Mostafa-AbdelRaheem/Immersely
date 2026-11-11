@@ -7,6 +7,7 @@ import LoginPage from './features/auth/LoginPage.jsx'
 import RegisterPage from './features/auth/RegisterPage.jsx'
 import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
 import RedirectIfAuthenticated from './features/auth/RedirectIfAuthenticated.jsx'
+import VerifyEmailPage from './features/auth/VerifyEmailPage.jsx'
 import SentencesPage from './features/sentences/SentencesPage.jsx'
 import SessionPage from './features/session/SessionPage.jsx'
 import ReadPage from './features/read/ReadPage.jsx'
@@ -22,6 +23,8 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
           </Route>
+
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route
