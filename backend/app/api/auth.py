@@ -21,11 +21,11 @@ from app.core.db import get_db
 from app.core.limiter import limiter
 from app.core.security import generate_csrf_token
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin, UserOut
 
 from app.schemas.user import (
     ForgotPasswordIn,
     ResetPasswordIn,
+    ProfileUpdateIn,
     UserCreate,
     UserLogin,
     UserOut,
@@ -42,6 +42,7 @@ from app.services.auth import (
     login_user,
     refresh_tokens,
     register_user,
+    update_profile,
 )
 
 from app.services.email_sender import (
@@ -210,7 +211,31 @@ async def logout(response: Response):
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
-
+@router.patch("/me", response_model=UserOut)
+@limiter.limit("10/minute")
+async def update_me(
+    request: Request,
+    body: ProfileUpdateIn,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        return await update_profile(
+            db, current_user, **body.model_dump(exclude_unset=True)
+        )
+    except InvalidUsernameError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "invalid_username",
+                "problems": [p.value for p in exc.problems],
+            },
+        )
+    except UsernameTakenError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"code": "username_taken"},
+        )
 
 @router.post("/verify-email")
 @limiter.limit("10/minute")
