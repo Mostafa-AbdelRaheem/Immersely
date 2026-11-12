@@ -80,6 +80,23 @@ def _violated_constraint(exc: IntegrityError) -> str | None:
     cause = getattr(exc.orig, "__cause__", None)
     return getattr(cause, "constraint_name", None)
 
+def validate_username(raw_username: str) -> str:
+    """Normalize, then run the format rules.
+
+    Returns the NORMALIZED username; callers must store the returned value,
+    never the raw input. Raises InvalidUsernameError carrying every problem
+    found. Pure (no DB): uniqueness is the caller's job.
+    """
+    username = normalize_username(raw_username)
+    problems = check_username(
+        username,
+        min_length=settings.username_min_length,
+        max_length=settings.username_max_length,
+    )
+    if problems:
+        raise InvalidUsernameError(problems)
+    return username
+
 async def validate_new_password(raw_password: str, *, email: str) -> str:
     """Normalize, then run the policy and the breach check.
 
@@ -105,14 +122,7 @@ async def validate_new_password(raw_password: str, *, email: str) -> str:
 
 async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
     # 1. Cheap local checks first: no network, no DB, no bcrypt.
-    username = normalize_username(user_in.username)
-    username_problems = check_username(
-        username,
-        min_length=settings.username_min_length,
-        max_length=settings.username_max_length,
-    )
-    if username_problems:
-        raise InvalidUsernameError(username_problems)
+    username = validate_username(user_in.username)
     # 2. Password policy + breach lookup, shared with reset/change-password.
     #    Returns the NORMALIZED password; that is what we must hash below.
     password = await validate_new_password(user_in.password, email=user_in.email)
