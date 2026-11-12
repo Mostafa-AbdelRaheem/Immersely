@@ -57,3 +57,18 @@ def test_can_leave_the_commit_to_the_caller():
 def test_returns_how_many_tokens_were_revoked():
     assert revoke(FakeDB(rowcount=3)) == 3
     assert revoke(FakeDB(rowcount=0)) == 0
+
+
+def test_can_spare_one_token_by_hash():
+    db = FakeDB(rowcount=1)
+    revoke(db, except_token_hash="keep-me-hash")
+    compiled = db.statements[0].compile(dialect=postgresql.dialect())
+    assert "token_hash !=" in str(compiled)
+    assert "keep-me-hash" in compiled.params.values()
+
+
+def test_no_exception_clause_when_no_hash_is_given():
+    db = FakeDB()
+    revoke(db)
+    compiled = db.statements[0].compile(dialect=postgresql.dialect())
+    assert "token_hash" not in str(compiled)
