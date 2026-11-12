@@ -19,3 +19,12 @@ export function forgotPassword(email) {
     body: JSON.stringify({ email }),
   })
 }
+
+// The server's field is `new_password`. The password is sent exactly as typed:
+// the server normalizes it, and trimming here would change what gets hashed.
+export function resetPassword(token, password) {
+  return apiFetch('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, new_password: password }),
+  })
+}

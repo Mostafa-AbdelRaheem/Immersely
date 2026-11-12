@@ -9,6 +9,7 @@ import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
 import RedirectIfAuthenticated from './features/auth/RedirectIfAuthenticated.jsx'
 import VerifyEmailPage from './features/auth/VerifyEmailPage.jsx'
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage.jsx'
+import ResetPasswordPage from './features/auth/ResetPasswordPage.jsx'
 import SentencesPage from './features/sentences/SentencesPage.jsx'
 import SessionPage from './features/session/SessionPage.jsx'
 import ReadPage from './features/read/ReadPage.jsx'
@@ -27,6 +28,7 @@ function App() {
           </Route>
 
           <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route
