@@ -247,3 +247,46 @@ async def refresh_tokens(db: AsyncSession, refresh_token: str) -> tuple[str, str
         raise InvalidRefreshTokenError("Refresh token has already been used")
 
     return new_access_token, new_refresh_token
+
+async def update_profile(
+    db: AsyncSession,
+    user: User,
+    *,
+    name: str | None = None,
+    username: str | None = None,
+) -> User:
+    """Apply a partial profile update to `user` and return it.
+
+    None means "not sent, leave alone" (the route passes only fields the
+    client actually sent). The name arrives already trimmed and length-checked
+    by the schema. A username is validated ONLY when sent, so accounts with a
+    legacy backfilled username can still change their name.
+
+    Raises InvalidUsernameError or UsernameTakenError.
+    """
+    if username is not None:
+        new_username = validate_username(username)
+        # Saving your own unchanged username is a no-op, never "taken".
+        if new_username != user.username:
+            result = await db.execute(
+                select(User).where(
+                    User.username == new_username, User.id != user.id
+                )
+            )
+            if result.scalar_one_or_none() is not None:
+                raise UsernameTakenError("Username is already taken")
+            user.username = new_username
+
+    if name is not None:
+        user.name = name
+
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        if _violated_constraint(exc) == "users_username_key":
+            raise UsernameTakenError("Username is already taken") from None
+        raise  # unknown constraint = a bug; stay loud
+
+    await db.refresh(user)
+    return user
