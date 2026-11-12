@@ -10,3 +10,12 @@ export function verifyEmail(token) {
     body: JSON.stringify({ token }),
   })
 }
+
+// The server answers 200 with the same body whether or not the email has an
+// account, so callers must not treat the response as proof either way.
+export function forgotPassword(email) {
+  return apiFetch('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
