@@ -14,6 +14,8 @@ export default function VerifyEmailPage() {
   const [status, setStatus] = useState(token ? 'verifying' : 'invalid')
   // Guards the single-use token against StrictMode's double effect run.
   const startedRef = useRef(false)
+  // Limits the user refresh to one attempt per page visit.
+  const refreshedRef = useRef(false)
 
   useEffect(() => {
     if (startedRef.current) return
@@ -25,14 +27,21 @@ export default function VerifyEmailPage() {
     if (!token) return
 
     verifyEmail(token)
-      .then(() => {
-        setStatus('verified')
-        refreshUser()
-      })
+      .then(() => setStatus('verified'))
       .catch((err) => {
         setStatus(err?.status === 400 ? 'invalid' : 'error')
       })
   }, [token])
+
+  // The session can finish restoring before or after the POST completes, so
+  // this reacts to both: once verified, refresh a logged-in user whose copy
+  // still says unverified (so the banner disappears without a reload).
+  useEffect(() => {
+    if (status !== 'verified' || !user || user.email_verified_at) return
+    if (refreshedRef.current) return
+    refreshedRef.current = true
+    refreshUser()
+  }, [status, user, refreshUser])
 
   return (
     <div className="auth-page">
