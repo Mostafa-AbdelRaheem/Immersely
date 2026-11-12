@@ -38,7 +38,7 @@ describe('mapRegisterError: password', () => {
       too_short: 'too short',
       too_long: 'at most',
       same_as_email: 'same as your email',
-      breached: 'data breach',
+      breached: 'data leak',
     }
     for (const [problem, fragment] of Object.entries(cases)) {
       const result = mapRegisterError({
@@ -56,7 +56,7 @@ describe('mapRegisterError: password', () => {
       detail: { code: 'weak_password', problems: ['too_short', 'breached'] },
     })
     expect(result.fieldErrors.password).toContain('too short')
-    expect(result.fieldErrors.password).toContain('data breach')
+    expect(result.fieldErrors.password).toContain('data leak')
   })
 
   it('uses a fallback for an unknown problem code', () => {

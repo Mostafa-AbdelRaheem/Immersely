@@ -20,7 +20,7 @@ const PASSWORD_MESSAGES = {
   too_long: `Password must be at most ${PASSWORD_MAX_BYTES} bytes (accented letters and emoji use more than one each).`,
   same_as_email: "Password can't be the same as your email.",
   breached:
-    'This password appeared in a known data breach. Please choose a different one.',
+  'This password has appeared in a public data leak, so attackers already try it. Pick a longer, less guessable one, such as three or four unrelated words.',
 }
 const PASSWORD_FALLBACK = "This password isn't acceptable."
 

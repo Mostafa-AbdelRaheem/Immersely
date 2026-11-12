@@ -189,7 +189,7 @@ export default function RegisterPage() {
           id="password"
           label="Password"
           error={fieldErrors.password}
-          hint="At least 8 characters. Passwords found in known data breaches are rejected."
+          hint="At least 8 characters. Common or leaked passwords are rejected, so try a few unrelated words."
         >
           {(describedBy) => (
             <div className="password-row">
