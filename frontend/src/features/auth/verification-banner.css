@@ -1,0 +1,29 @@
+/* src/features/auth/verification-banner.css
+   One-line notice under the top bar for accounts whose email is unverified. */
+
+.verification-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 2rem;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-accent-text);
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.verification-banner__resend {
+  padding: 0.3rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.verification-banner__message {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 860px) {
+  .verification-banner { padding: 0.6rem 1rem; }
+}

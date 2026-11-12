@@ -28,3 +28,9 @@ export function resetPassword(token, password) {
     body: JSON.stringify({ token, new_password: password }),
   })
 }
+
+// Needs a logged-in user (bearer token). 409 already_verified, 429 and 502
+// propagate to the caller.
+export function resendVerification() {
+  return apiFetch('/auth/resend-verification', { method: 'POST' })
+}

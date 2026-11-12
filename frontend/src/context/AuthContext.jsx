@@ -61,8 +61,22 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  // Re-reads the current user (e.g. after email verification). Failures keep
+  // the existing user: a refresh problem must never log anyone out.
+  async function refreshUser() {
+    if (!user) return
+    try {
+      const me = await apiFetch('/auth/me')
+      setUser(me)
+    } catch {
+      // keep the current user
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, login, register, logout, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   )

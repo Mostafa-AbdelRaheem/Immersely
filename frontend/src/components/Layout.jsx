@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import DueTodayBadge from '../features/session/DueTodayBadge'
+import VerificationBanner from '../features/auth/VerificationBanner'
 import Sidebar from './Sidebar'
 import './Layout.css'
 
@@ -22,6 +23,7 @@ export default function Layout() {
           {user && <span className="topbar-user">{user.email}</span>}
           <span className="topbar-avatar" aria-hidden="true">{initial}</span>
         </header>
+        <VerificationBanner />
         <main className="app-content">
           <Outlet context={{ topbarSlot }} />
         </main>

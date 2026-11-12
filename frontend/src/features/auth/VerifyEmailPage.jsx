@@ -6,7 +6,7 @@ import { readTokenFromHash } from './tokenFromHash'
 import './auth.css'
 
 export default function VerifyEmailPage() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   // Read once from the URL fragment at first render; never rendered.
   const [token] = useState(() => readTokenFromHash(window.location.hash))
   // No token is known at first render, so it is the starting status
@@ -25,7 +25,10 @@ export default function VerifyEmailPage() {
     if (!token) return
 
     verifyEmail(token)
-      .then(() => setStatus('verified'))
+      .then(() => {
+        setStatus('verified')
+        refreshUser()
+      })
       .catch((err) => {
         setStatus(err?.status === 400 ? 'invalid' : 'error')
       })
