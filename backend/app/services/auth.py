@@ -18,6 +18,9 @@ from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin
 from app.services.breached_passwords import is_password_breached
+from app.services.email_messages import password_changed_message
+from app.services.email_sender import EmailMessage
+from app.services.sessions import revoke_user_refresh_tokens
 
 from app.services.password_policy import (
     PasswordProblem,
@@ -53,6 +56,12 @@ class InvalidUsernameError(Exception):
 class UsernameTakenError(Exception):
     pass
 
+class CurrentPasswordIncorrectError(Exception):
+    """The supplied current password does not match. Deliberately NOT an
+    invalid-credentials error: the route maps it to 400, never 401."""
+
+class SamePasswordError(Exception):
+    """The new password equals the current one."""
 
 class InvalidCredentialsError(Exception):
     pass
@@ -290,3 +299,43 @@ async def update_profile(
 
     await db.refresh(user)
     return user
+
+async def change_password(
+    db: AsyncSession,
+    user: User,
+    current_password: str,
+    new_password: str,
+    *,
+    keep_token_hash: str | None = None,
+) -> EmailMessage:
+    """Change `user`'s password and revoke their OTHER sessions.
+
+    keep_token_hash is the hash of the caller's own refresh token (spared);
+    None revokes every session. Raises CurrentPasswordIncorrectError,
+    SamePasswordError or WeakPasswordError; nothing is changed in any of
+    those cases. Returns the "password changed" notice for the route to send.
+    """
+    if not verify_password(normalize_password(current_password), user.hashed_password):
+        raise CurrentPasswordIncorrectError()
+
+    # Normalize once; validate_new_password returns the normalized form.
+    candidate = normalize_password(new_password)
+    if verify_password(candidate, user.hashed_password):
+        raise SamePasswordError()
+
+    password = await validate_new_password(new_password, email=user.email)
+    # Hash BEFORE opening the write: bcrypt is slow.
+    new_hash = hash_password(password)
+
+    to, name = user.email, user.name
+    try:
+        user.hashed_password = new_hash
+        await revoke_user_refresh_tokens(
+            db, user.id, commit=False, except_token_hash=keep_token_hash
+        )
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise
+
+    return password_changed_message(to=to, name=name)
