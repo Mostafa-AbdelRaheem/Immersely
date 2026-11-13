@@ -69,6 +69,17 @@ class ResetPasswordIn(BaseModel):
     # value would hash differently from what the user typed at registration.
     new_password: Annotated[str, StringConstraints(max_length=MAX_PASSWORD_INPUT_CHARS)]
 
+
+class ChangePasswordIn(BaseModel):
+    # No strip_whitespace, for the same reason as ResetPasswordIn.
+    current_password: Annotated[
+        str, StringConstraints(max_length=MAX_PASSWORD_INPUT_CHARS)
+    ]
+    new_password: Annotated[
+        str, StringConstraints(max_length=MAX_PASSWORD_INPUT_CHARS)
+    ]
+
+
 class ProfileUpdateIn(BaseModel):
     """PATCH /auth/me body. Only fields the client sent are applied.
 

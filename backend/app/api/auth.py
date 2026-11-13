@@ -19,13 +19,14 @@ from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.db import get_db
 from app.core.limiter import limiter
-from app.core.security import generate_csrf_token
+from app.core.security import generate_csrf_token, hash_token
 from app.models.user import User
 
 from app.schemas.user import (
+    ChangePasswordIn,
     ForgotPasswordIn,
-    ResetPasswordIn,
     ProfileUpdateIn,
+    ResetPasswordIn,
     UserCreate,
     UserLogin,
     UserOut,
@@ -33,12 +34,15 @@ from app.schemas.user import (
 )
 from app.services.auth import (
     AccountLockedError,
+    CurrentPasswordIncorrectError,
     EmailAlreadyRegisteredError,
     InvalidCredentialsError,
     InvalidRefreshTokenError,
     InvalidUsernameError,
+    SamePasswordError,
     UsernameTakenError,
     WeakPasswordError,
+    change_password,
     login_user,
     refresh_tokens,
     register_user,
@@ -120,7 +124,7 @@ async def register(
                 "problems": [p.value for p in exc.problems],
             },
         )
-    
+
     except EmailAlreadyRegisteredError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -211,6 +215,7 @@ async def logout(response: Response):
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
+
 @router.patch("/me", response_model=UserOut)
 @limiter.limit("10/minute")
 async def update_me(
@@ -236,6 +241,52 @@ async def update_me(
             status_code=status.HTTP_409_CONFLICT,
             detail={"code": "username_taken"},
         )
+
+
+@router.post("/change-password")
+@limiter.limit("5/minute")
+async def change_password_endpoint(
+    request: Request,
+    body: ChangePasswordIn,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    sender: EmailSender = Depends(get_email_sender),
+    refresh_token: str | None = Cookie(default=None, alias=REFRESH_COOKIE_NAME),
+):
+    # The cookie only identifies which session to spare; the bearer token is
+    # the authority, so no CSRF check is needed here. No cookie = revoke all.
+    keep_hash = hash_token(refresh_token) if refresh_token else None
+    try:
+        notice = await change_password(
+            db,
+            current_user,
+            body.current_password,
+            body.new_password,
+            keep_token_hash=keep_hash,
+        )
+    except CurrentPasswordIncorrectError:
+        # 400, never 401: a 401 makes the client try a refresh and possibly log out.
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "current_password_incorrect"},
+        )
+    except SamePasswordError:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "same_as_current"},
+        )
+    except WeakPasswordError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "weak_password",
+                "problems": [p.value for p in exc.problems],
+            },
+        )
+    background_tasks.add_task(_send_in_background, sender, notice)
+    return {"detail": "Password updated"}
+
 
 @router.post("/verify-email")
 @limiter.limit("10/minute")
@@ -277,8 +328,6 @@ async def resend_verification(
             detail={"code": "email_send_failed"},
         )
     return {"detail": "Verification email sent"}
-
-
 
 
 # One constant for every forgot-password outcome (unknown email, cooldown, sent),
