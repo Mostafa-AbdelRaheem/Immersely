@@ -1,6 +1,6 @@
 // src/components/Layout.jsx
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import DueTodayBadge from '../features/session/DueTodayBadge'
 import VerificationBanner from '../features/auth/VerificationBanner'
@@ -20,8 +20,12 @@ export default function Layout() {
         <header className="topbar">
           <div className="topbar-slot" ref={setTopbarSlot} />
           <DueTodayBadge />
-          {user && <span className="topbar-user">{user.email}</span>}
-          <span className="topbar-avatar" aria-hidden="true">{initial}</span>
+          {user && (
+            <Link to="/profile" className="topbar-profile" aria-label="Account">
+              <span className="topbar-user">{user.email}</span>
+              <span className="topbar-avatar" aria-hidden="true">{initial}</span>
+            </Link>
+          )}
         </header>
         <VerificationBanner />
         <main className="app-content">

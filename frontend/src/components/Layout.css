@@ -107,6 +107,16 @@
 
 .topbar-user { font-size: 0.85rem; color: var(--color-text-muted); }
 
+.topbar-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: inherit;
+  text-decoration: none;
+}
+.topbar-profile:hover .topbar-user { text-decoration: underline; }
+.topbar-profile:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 4px; border-radius: var(--radius); }
+
 /* Left side of the top bar: pages can portal controls here (e.g. chat Back). */
 .topbar-slot { margin-right: auto; display: flex; align-items: center; }
 
