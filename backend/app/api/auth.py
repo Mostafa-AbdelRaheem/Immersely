@@ -64,8 +64,7 @@ from app.services.email_verification import (
 )
 
 from app.services.password_reset import request_password_reset, reset_password
-from app.services.sessions import revoke_user_refresh_tokens
-
+from app.services.sessions import revoke_refresh_token, revoke_user_refresh_tokens
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -207,7 +206,16 @@ async def refresh(
 
 
 @router.post("/logout")
-async def logout(response: Response):
+async def logout(
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+    refresh_token: str | None = Cookie(default=None, alias=REFRESH_COOKIE_NAME),
+):
+    # Possession of the cookie identifies the session; no bearer needed, so
+    # logout still works with an expired access token. Idempotent: no cookie,
+    # unknown or already-revoked token all return 200.
+    if refresh_token:
+        await revoke_refresh_token(db, hash_token(refresh_token))
     response.delete_cookie(REFRESH_COOKIE_NAME, path="/auth")
     response.delete_cookie(CSRF_COOKIE_NAME, path="/")
     return {"detail": "Logged out"}

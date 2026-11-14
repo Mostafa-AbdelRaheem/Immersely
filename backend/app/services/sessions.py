@@ -50,3 +50,29 @@ async def revoke_user_refresh_tokens(
     if commit:
         await db.commit()
     return result.rowcount
+
+
+async def revoke_refresh_token(
+    db: AsyncSession,
+    token_hash: str,
+    *,
+    now: datetime | None = None,
+) -> bool:
+    """Revoke the single active refresh token with this hash; True if one was.
+
+    Possession of the raw token is the proof of ownership, so there is no
+    user id to check. Unknown or already-revoked tokens return False and
+    keep their original revoked_at.
+    """
+    now = now or datetime.now(timezone.utc)
+    result = await db.execute(
+        update(RefreshToken)
+        .where(
+            RefreshToken.token_hash == token_hash,
+            RefreshToken.revoked_at.is_(None),
+        )
+        .values(revoked_at=now)
+        .execution_options(synchronize_session=False)
+    )
+    await db.commit()
+    return result.rowcount > 0
