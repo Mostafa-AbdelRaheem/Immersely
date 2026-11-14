@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { apiFetch, refreshAccessToken, setAccessToken, setUnauthorizedHandler } from '../api/client'
+import { logoutAll } from '../api/profile'
 
 const AuthContext = createContext(null)
 
@@ -61,6 +62,14 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  // Revokes every session, this device included. Clears local state only
+  // after the server confirms, so a failure leaves the user logged in.
+  async function logoutEverywhere() {
+    await logoutAll()
+    setAccessToken(null)
+    setUser(null)
+  }
+
   // Re-reads the current user (e.g. after email verification). Failures keep
   // the existing user: a refresh problem must never log anyone out.
   async function refreshUser() {
@@ -75,7 +84,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, login, register, logout, refreshUser }}
+      value={{ user, isLoading, login, register, logout, logoutEverywhere, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

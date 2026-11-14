@@ -15,6 +15,7 @@ import SessionPage from './features/session/SessionPage.jsx'
 import ReadPage from './features/read/ReadPage.jsx'
 import ConversationsPage from './features/conversations/ConversationsPage.jsx'
 import DashboardPage from './features/stats/DashboardPage.jsx'
+import ProfilePage from './features/profile/ProfilePage.jsx'
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
               <Route path="/read" element={<ReadPage />} />
               <Route path="/conversations" element={<ConversationsPage />} />
               <Route path="/stats" element={<Navigate to="/" replace />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
           </Route>
         </Routes>
