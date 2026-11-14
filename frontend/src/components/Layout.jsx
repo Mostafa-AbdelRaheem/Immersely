@@ -11,7 +11,8 @@ export default function Layout() {
   const { user } = useAuth()
   // State, not a ref: pages portal into this element and must re-render once it exists.
   const [topbarSlot, setTopbarSlot] = useState(null)
-  const initial = user?.email ? user.email[0].toUpperCase() : '?'
+  const displayName = user?.name || user?.email || ''
+  const initial = displayName ? displayName[0].toUpperCase() : '?'
 
   return (
     <div className="app-shell">
@@ -22,7 +23,7 @@ export default function Layout() {
           <DueTodayBadge />
           {user && (
             <Link to="/profile" className="topbar-profile" aria-label="Account">
-              <span className="topbar-user">{user.email}</span>
+              <span className="topbar-user">{displayName}</span>
               <span className="topbar-avatar" aria-hidden="true">{initial}</span>
             </Link>
           )}
