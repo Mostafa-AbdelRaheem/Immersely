@@ -64,6 +64,8 @@ from app.services.email_verification import (
 )
 
 from app.services.password_reset import request_password_reset, reset_password
+from app.services.sessions import revoke_user_refresh_tokens
+
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -209,6 +211,21 @@ async def logout(response: Response):
     response.delete_cookie(REFRESH_COOKIE_NAME, path="/auth")
     response.delete_cookie(CSRF_COOKIE_NAME, path="/")
     return {"detail": "Logged out"}
+
+@router.post("/logout-all")
+@limiter.limit("5/minute")
+async def logout_all(
+    request: Request,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # Revoke EVERY session, this device included (no except_token_hash).
+    # Bearer token is the authority, so no CSRF check, as in change-password.
+    await revoke_user_refresh_tokens(db, current_user.id)
+    response.delete_cookie(REFRESH_COOKIE_NAME, path="/auth")
+    response.delete_cookie(CSRF_COOKIE_NAME, path="/")
+    return {"detail": "Logged out everywhere"}
 
 
 @router.get("/me", response_model=UserOut)
