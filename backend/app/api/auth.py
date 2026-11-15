@@ -24,6 +24,7 @@ from app.models.user import User
 
 from app.schemas.user import (
     ChangePasswordIn,
+    DeleteAccountIn,
     ForgotPasswordIn,
     ProfileUpdateIn,
     ResetPasswordIn,
@@ -43,6 +44,7 @@ from app.services.auth import (
     UsernameTakenError,
     WeakPasswordError,
     change_password,
+    delete_account,
     login_user,
     refresh_tokens,
     register_user,
@@ -311,6 +313,33 @@ async def change_password_endpoint(
         )
     background_tasks.add_task(_send_in_background, sender, notice)
     return {"detail": "Password updated"}
+
+
+@router.post("/delete-account")
+@limiter.limit("5/minute")
+async def delete_account_endpoint(
+    request: Request,
+    response: Response,
+    body: DeleteAccountIn,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    sender: EmailSender = Depends(get_email_sender),
+):
+    # Bearer token + password are the authority; no CSRF check, as in
+    # change-password. Cookies are cleared only after the delete succeeded.
+    try:
+        notice = await delete_account(db, current_user, body.password)
+    except CurrentPasswordIncorrectError:
+        # 400, never 401: a 401 makes the client try a refresh and possibly log out.
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "current_password_incorrect"},
+        )
+    response.delete_cookie(REFRESH_COOKIE_NAME, path="/auth")
+    response.delete_cookie(CSRF_COOKIE_NAME, path="/")
+    background_tasks.add_task(_send_in_background, sender, notice)
+    return {"detail": "Account deleted"}
 
 
 @router.post("/verify-email")
