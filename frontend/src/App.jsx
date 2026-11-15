@@ -7,11 +7,15 @@ import LoginPage from './features/auth/LoginPage.jsx'
 import RegisterPage from './features/auth/RegisterPage.jsx'
 import ProtectedRoute from './features/auth/ProtectedRoute.jsx'
 import RedirectIfAuthenticated from './features/auth/RedirectIfAuthenticated.jsx'
+import VerifyEmailPage from './features/auth/VerifyEmailPage.jsx'
+import ForgotPasswordPage from './features/auth/ForgotPasswordPage.jsx'
+import ResetPasswordPage from './features/auth/ResetPasswordPage.jsx'
 import SentencesPage from './features/sentences/SentencesPage.jsx'
 import SessionPage from './features/session/SessionPage.jsx'
 import ReadPage from './features/read/ReadPage.jsx'
 import ConversationsPage from './features/conversations/ConversationsPage.jsx'
 import DashboardPage from './features/stats/DashboardPage.jsx'
+import ProfilePage from './features/profile/ProfilePage.jsx'
 
 function App() {
   return (
@@ -21,7 +25,11 @@ function App() {
           <Route element={<RedirectIfAuthenticated />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           </Route>
+
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route
@@ -39,6 +47,7 @@ function App() {
               <Route path="/read" element={<ReadPage />} />
               <Route path="/conversations" element={<ConversationsPage />} />
               <Route path="/stats" element={<Navigate to="/" replace />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
           </Route>
         </Routes>

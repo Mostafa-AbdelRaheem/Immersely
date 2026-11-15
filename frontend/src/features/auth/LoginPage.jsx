@@ -6,6 +6,7 @@ import './auth.css'
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -21,7 +22,11 @@ export default function LoginPage() {
       await login(email, password)
       navigate('/')
     } catch (err) {
-      setError('Invalid email or password.')
+      if (err?.status === 429) {
+        setError('Too many attempts. Please wait a minute and try again.')
+      } else {
+        setError('Invalid email or password.')
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -36,6 +41,7 @@ export default function LoginPage() {
           <input
             id="email"
             type="email"
+            autoComplete="username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -43,13 +49,27 @@ export default function LoginPage() {
         </div>
         <div className="form-field">
           <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div className="password-row">
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              aria-pressed={showPassword}
+              onClick={() => setShowPassword((v) => !v)}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          <p className="form-hint">
+            <Link to="/forgot-password">Forgot password?</Link>
+          </p>
         </div>
         {error && (
           <p className="form-error" role="alert">
@@ -61,7 +81,7 @@ export default function LoginPage() {
         </button>
       </form>
       <p className="auth-switch">
-        Don't have an account? <Link to="/register">Register</Link>
+        Don&apos;t have an account? <Link to="/register">Register</Link>
       </p>
     </div>
   )

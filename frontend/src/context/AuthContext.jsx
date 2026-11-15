@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { apiFetch, refreshAccessToken, setAccessToken, setUnauthorizedHandler } from '../api/client'
+import { logoutAll, deleteAccount as deleteAccountRequest } from '../api/profile'
 
 const AuthContext = createContext(null)
 
@@ -48,10 +49,10 @@ export function AuthProvider({ children }) {
     setUser(me)
   }
 
-  async function register(email, password) {
+  async function register({ name, username, email, password }) {
     await apiFetch('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ name, username, email, password }),
     })
   }
 
@@ -61,8 +62,39 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  // Revokes every session, this device included. Clears local state only
+  // after the server confirms, so a failure leaves the user logged in.
+  async function logoutEverywhere() {
+    await logoutAll()
+    setAccessToken(null)
+    setUser(null)
+  }
+
+  // Permanently deletes the account. Local state is cleared only after the
+  // server confirms, so a wrong password leaves the user logged in. Success
+  // clears the user and ProtectedRoute redirects to /login.
+  async function deleteAccount(password) {
+    await deleteAccountRequest(password)
+    setAccessToken(null)
+    setUser(null)
+  }
+
+  // Re-reads the current user (e.g. after email verification). Failures keep
+  // the existing user: a refresh problem must never log anyone out.
+  async function refreshUser() {
+    if (!user) return
+    try {
+      const me = await apiFetch('/auth/me')
+      setUser(me)
+    } catch {
+      // keep the current user
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, login, register, logout, logoutEverywhere, deleteAccount, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   )

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
@@ -17,11 +17,54 @@ from app.core.security import (
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin
+from app.services.breached_passwords import is_password_breached
+from app.services.email_messages import (
+    account_deleted_message,
+    password_changed_message,
+)
+from app.services.email_sender import EmailMessage
+from app.services.sessions import revoke_user_refresh_tokens
 
+from app.services.password_policy import (
+    PasswordProblem,
+    check_password,
+    normalize_password,
+)
+
+from app.services.username_policy import (
+    UsernameProblem,
+    check_username,
+    normalize_username,
+)
 
 class EmailAlreadyRegisteredError(Exception):
     pass
 
+class WeakPasswordError(Exception):
+    """Raised when a new password fails the policy. Carries every problem
+    found, as codes the route/frontend can turn into messages."""
+
+    def __init__(self, problems: list[PasswordProblem]):
+        self.problems = problems
+        super().__init__(", ".join(p.value for p in problems))
+
+class InvalidUsernameError(Exception):
+    """Username fails the format rules; carries every problem as codes."""
+
+    def __init__(self, problems: list[UsernameProblem]):
+        self.problems = problems
+        super().__init__(", ".join(p.value for p in problems))
+
+
+class UsernameTakenError(Exception):
+    pass
+
+class CurrentPasswordIncorrectError(Exception):
+    """The supplied current password does not match. Deliberately NOT an
+    invalid-credentials error: the route maps it to 400, never 401."""
+
+class SamePasswordError(Exception):
+    """The new password equals the current one."""
 
 class InvalidCredentialsError(Exception):
     pass
@@ -40,20 +83,95 @@ LOCKOUT_WINDOW = timedelta(seconds=60)
 class AccountLockedError(Exception):
     pass
 
+def _violated_constraint(exc: IntegrityError) -> str | None:
+    """Name of the unique/check constraint that failed, if the driver exposes it.
+
+    With asyncpg the name lives on exc.orig.__cause__ (verified against the
+    real database); exc.orig itself has no constraint_name.
+    """
+    cause = getattr(exc.orig, "__cause__", None)
+    return getattr(cause, "constraint_name", None)
+
+def validate_username(raw_username: str) -> str:
+    """Normalize, then run the format rules.
+
+    Returns the NORMALIZED username; callers must store the returned value,
+    never the raw input. Raises InvalidUsernameError carrying every problem
+    found. Pure (no DB): uniqueness is the caller's job.
+    """
+    username = normalize_username(raw_username)
+    problems = check_username(
+        username,
+        min_length=settings.username_min_length,
+        max_length=settings.username_max_length,
+    )
+    if problems:
+        raise InvalidUsernameError(problems)
+    return username
+
+async def validate_new_password(raw_password: str, *, email: str) -> str:
+    """Normalize, then run the policy and the breach check.
+
+    Returns the NORMALIZED password. Callers must hash the returned value,
+    never the raw input, or login (which normalizes) would not match.
+    Raises WeakPasswordError carrying every problem found.
+    """
+    password = normalize_password(raw_password)
+    problems = check_password(
+        password,
+        email=email,
+        min_length=settings.password_min_length,
+        max_bytes=settings.password_max_bytes,
+    )
+    if problems:
+        raise WeakPasswordError(problems)
+    if settings.hibp_enabled and await is_password_breached(
+        password, timeout_s=settings.hibp_timeout_s
+    ):
+        raise WeakPasswordError([PasswordProblem.BREACHED])
+    return password
+
+
 async def register_user(db: AsyncSession, user_in: UserCreate) -> User:
+    # 1. Cheap local checks first: no network, no DB, no bcrypt.
+    username = validate_username(user_in.username)
+    # 2. Password policy + breach lookup, shared with reset/change-password.
+    #    Returns the NORMALIZED password; that is what we must hash below.
+    password = await validate_new_password(user_in.password, email=user_in.email)
+
+    # 3. Friendly pre-checks (the fast path).
     result = await db.execute(select(User).where(User.email == user_in.email))
-    existing_user = result.scalar_one_or_none()
-    if existing_user is not None:
+    if result.scalar_one_or_none() is not None:
         raise EmailAlreadyRegisteredError(f"Email {user_in.email} is already registered")
+
+    result = await db.execute(select(User).where(User.username == username))
+    if result.scalar_one_or_none() is not None:
+        raise UsernameTakenError(f"Username {username} is already taken")
 
     new_user = User(
         email=user_in.email,
-        hashed_password=hash_password(user_in.password),
+        username=username,
+        name=user_in.name,
+        hashed_password=hash_password(password),
     )
     db.add(new_user)
-    await db.commit()
+
+    # 4. Backstop for the race: two requests can both pass the pre-checks and
+    #    then collide on the unique constraint. Translate by constraint name,
+    #    and never log or return str(exc): it contains the failing row.
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        constraint = _violated_constraint(exc)
+        if constraint == "users_email_key":
+            raise EmailAlreadyRegisteredError("Email is already registered") from None
+        if constraint == "users_username_key":
+            raise UsernameTakenError("Username is already taken") from None
+        raise  # unknown constraint = a bug; stay loud
 
     return new_user
+
 
 
 async def login_user(db: AsyncSession, credentials: UserLogin) -> tuple[str, str]:
@@ -71,7 +189,9 @@ async def login_user(db: AsyncSession, credentials: UserLogin) -> tuple[str, str
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
-    if user is None or not verify_password(credentials.password, user.hashed_password):
+    if user is None or not verify_password(
+        normalize_password(credentials.password), user.hashed_password
+    ):
         recent_attempts.append(now)
         _failed_login_attempts[email] = recent_attempts
         raise InvalidCredentialsError("Invalid email or password")
@@ -139,3 +259,114 @@ async def refresh_tokens(db: AsyncSession, refresh_token: str) -> tuple[str, str
         raise InvalidRefreshTokenError("Refresh token has already been used")
 
     return new_access_token, new_refresh_token
+
+async def update_profile(
+    db: AsyncSession,
+    user: User,
+    *,
+    name: str | None = None,
+    username: str | None = None,
+) -> User:
+    """Apply a partial profile update to `user` and return it.
+
+    None means "not sent, leave alone" (the route passes only fields the
+    client actually sent). The name arrives already trimmed and length-checked
+    by the schema. A username is validated ONLY when sent, so accounts with a
+    legacy backfilled username can still change their name.
+
+    Raises InvalidUsernameError or UsernameTakenError.
+    """
+    if username is not None:
+        new_username = validate_username(username)
+        # Saving your own unchanged username is a no-op, never "taken".
+        if new_username != user.username:
+            result = await db.execute(
+                select(User).where(
+                    User.username == new_username, User.id != user.id
+                )
+            )
+            if result.scalar_one_or_none() is not None:
+                raise UsernameTakenError("Username is already taken")
+            user.username = new_username
+
+    if name is not None:
+        user.name = name
+
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        if _violated_constraint(exc) == "users_username_key":
+            raise UsernameTakenError("Username is already taken") from None
+        raise  # unknown constraint = a bug; stay loud
+
+    await db.refresh(user)
+    return user
+
+async def change_password(
+    db: AsyncSession,
+    user: User,
+    current_password: str,
+    new_password: str,
+    *,
+    keep_token_hash: str | None = None,
+) -> EmailMessage:
+    """Change `user`'s password and revoke their OTHER sessions.
+
+    keep_token_hash is the hash of the caller's own refresh token (spared);
+    None revokes every session. Raises CurrentPasswordIncorrectError,
+    SamePasswordError or WeakPasswordError; nothing is changed in any of
+    those cases. Returns the "password changed" notice for the route to send.
+    """
+    if not verify_password(normalize_password(current_password), user.hashed_password):
+        raise CurrentPasswordIncorrectError()
+
+    # Normalize once; validate_new_password returns the normalized form.
+    candidate = normalize_password(new_password)
+    if verify_password(candidate, user.hashed_password):
+        raise SamePasswordError()
+
+    password = await validate_new_password(new_password, email=user.email)
+    # Hash BEFORE opening the write: bcrypt is slow.
+    new_hash = hash_password(password)
+
+    to, name = user.email, user.name
+    try:
+        user.hashed_password = new_hash
+        await revoke_user_refresh_tokens(
+            db, user.id, commit=False, except_token_hash=keep_token_hash
+        )
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise
+
+    return password_changed_message(to=to, name=name)
+
+async def delete_account(
+    db: AsyncSession,
+    user: User,
+    password: str,
+) -> EmailMessage:
+    """Permanently delete `user` and everything they own.
+
+    Raises CurrentPasswordIncorrectError (nothing is changed). The children
+    (sentences, scenes, review events, tokens, articles) are removed by the
+    database through ON DELETE CASCADE, not by this code. Returns the
+    "account deleted" notice for the route to send.
+    """
+    if not verify_password(normalize_password(password), user.hashed_password):
+        raise CurrentPasswordIncorrectError()
+
+    # Read everything we need BEFORE the delete: the row is gone afterwards.
+    user_id, to, name = user.id, user.email, user.name
+    try:
+        result = await db.execute(delete(User).where(User.id == user_id))
+        if result.rowcount != 1:
+            raise RuntimeError("account delete affected an unexpected row count")
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise
+
+    return account_deleted_message(to=to, name=name)
