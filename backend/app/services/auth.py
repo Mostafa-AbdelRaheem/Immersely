@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
@@ -18,7 +18,10 @@ from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin
 from app.services.breached_passwords import is_password_breached
-from app.services.email_messages import password_changed_message
+from app.services.email_messages import (
+    account_deleted_message,
+    password_changed_message,
+)
 from app.services.email_sender import EmailMessage
 from app.services.sessions import revoke_user_refresh_tokens
 
@@ -339,3 +342,31 @@ async def change_password(
         raise
 
     return password_changed_message(to=to, name=name)
+
+async def delete_account(
+    db: AsyncSession,
+    user: User,
+    password: str,
+) -> EmailMessage:
+    """Permanently delete `user` and everything they own.
+
+    Raises CurrentPasswordIncorrectError (nothing is changed). The children
+    (sentences, scenes, review events, tokens, articles) are removed by the
+    database through ON DELETE CASCADE, not by this code. Returns the
+    "account deleted" notice for the route to send.
+    """
+    if not verify_password(normalize_password(password), user.hashed_password):
+        raise CurrentPasswordIncorrectError()
+
+    # Read everything we need BEFORE the delete: the row is gone afterwards.
+    user_id, to, name = user.id, user.email, user.name
+    try:
+        result = await db.execute(delete(User).where(User.id == user_id))
+        if result.rowcount != 1:
+            raise RuntimeError("account delete affected an unexpected row count")
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        raise
+
+    return account_deleted_message(to=to, name=name)
