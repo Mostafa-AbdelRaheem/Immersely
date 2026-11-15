@@ -6,7 +6,7 @@ import {
   mapRegisterError,
   utf8ByteLength,
 } from '../auth/registerLogic'
-import { mapChangePasswordError } from './profileLogic'
+import { mapChangePasswordError, mapDeleteAccountError } from './profileLogic'
 import '../auth/auth.css'
 import './profile.css'
 
@@ -272,6 +272,80 @@ function SessionsSection() {
   )
 }
 
+function DangerSection() {
+  const { user, deleteAccount } = useAuth()
+  const [confirmEmail, setConfirmEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
+  const [formError, setFormError] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const emailMatches =
+    confirmEmail.trim().toLowerCase() === user.email.toLowerCase()
+  const canSubmit = emailMatches && password.length > 0 && !isSubmitting
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!canSubmit) return
+    setFormError(null)
+    setFieldErrors({})
+    setIsSubmitting(true)
+    try {
+      await deleteAccount(password) // success clears the user; ProtectedRoute redirects
+    } catch (err) {
+      const mapped = mapDeleteAccountError(err)
+      setFieldErrors(mapped.fieldErrors)
+      setFormError(mapped.formError)
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <section className="profile-section">
+      <h2>Delete account</h2>
+      <p>
+        This permanently deletes your account, sentences, scenes and review
+        history. It cannot be undone.
+      </p>
+      <form className="profile-form" onSubmit={handleSubmit}>
+        <Field id="delete-email" label={`Type ${user.email} to confirm`}>
+          {() => (
+            <input
+              id="delete-email"
+              type="text"
+              autoComplete="off"
+              spellCheck={false}
+              value={confirmEmail}
+              onChange={(e) => setConfirmEmail(e.target.value)}
+            />
+          )}
+        </Field>
+        <Field id="delete-password" label="Password" error={fieldErrors.password}>
+          {(describedBy) => (
+            <input
+              id="delete-password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              aria-invalid={Boolean(fieldErrors.password)}
+              aria-describedby={describedBy}
+            />
+          )}
+        </Field>
+        {formError && (
+          <p className="form-error" role="alert">
+            {formError}
+          </p>
+        )}
+        <button className="btn btn-danger" type="submit" disabled={!canSubmit}>
+          {isSubmitting ? 'Deleting...' : 'Delete my account'}
+        </button>
+      </form>
+    </section>
+  )
+}
+
 export default function ProfilePage() {
   return (
     <div className="profile-page">
@@ -279,6 +353,7 @@ export default function ProfilePage() {
       <ProfileSection />
       <PasswordSection />
       <SessionsSection />
+      <DangerSection />
     </div>
   )
 }
