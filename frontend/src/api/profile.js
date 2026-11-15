@@ -31,3 +31,14 @@ export function changePassword(currentPassword, newPassword) {
 export function logoutAll() {
   return apiFetch('/auth/logout-all', { method: 'POST' })
 }
+
+// Permanently deletes the account. The password goes exactly as typed. On
+// success the server has already cleared the cookies; the caller must clear
+// its own in-memory token and user, as AuthContext.logout does. A wrong
+// password is a 400 (code current_password_incorrect), never a 401.
+export function deleteAccount(password) {
+  return apiFetch('/auth/delete-account', {
+    method: 'POST',
+    body: JSON.stringify({ password }),
+  })
+}

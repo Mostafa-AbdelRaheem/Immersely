@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { apiFetch, refreshAccessToken, setAccessToken, setUnauthorizedHandler } from '../api/client'
-import { logoutAll } from '../api/profile'
+import { logoutAll, deleteAccount as deleteAccountRequest } from '../api/profile'
 
 const AuthContext = createContext(null)
 
@@ -70,6 +70,15 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  // Permanently deletes the account. Local state is cleared only after the
+  // server confirms, so a wrong password leaves the user logged in. Success
+  // clears the user and ProtectedRoute redirects to /login.
+  async function deleteAccount(password) {
+    await deleteAccountRequest(password)
+    setAccessToken(null)
+    setUser(null)
+  }
+
   // Re-reads the current user (e.g. after email verification). Failures keep
   // the existing user: a refresh problem must never log anyone out.
   async function refreshUser() {
@@ -84,7 +93,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, login, register, logout, logoutEverywhere, refreshUser }}
+      value={{ user, isLoading, login, register, logout, logoutEverywhere, deleteAccount, refreshUser }}
     >
       {children}
     </AuthContext.Provider>
