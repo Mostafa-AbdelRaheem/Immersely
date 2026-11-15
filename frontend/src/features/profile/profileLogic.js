@@ -34,3 +34,24 @@ export function mapChangePasswordError(err) {
   }
   return { fieldErrors: {}, formError: mapped.formError }
 }
+
+// Maps an error from POST /auth/delete-account to field messages.
+// Fields: password. Anything unknown becomes a formError.
+export function mapDeleteAccountError(err) {
+  const detail = err?.detail
+  const code =
+    detail && typeof detail === 'object' && !Array.isArray(detail)
+      ? detail.code
+      : undefined
+
+  if (code === 'current_password_incorrect') {
+    return {
+      fieldErrors: { password: 'That password is incorrect.' },
+      formError: null,
+    }
+  }
+
+  // 429 and the generic fallback are already handled there.
+  const mapped = mapRegisterError(err)
+  return { fieldErrors: {}, formError: mapped.formError }
+}
