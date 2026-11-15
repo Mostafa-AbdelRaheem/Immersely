@@ -73,3 +73,19 @@ def password_changed_message(*, to: str, name: str | None) -> EmailMessage:
     return EmailMessage(
         to=to, subject="Your Immersely password was changed", text_body=body
     )
+
+def account_deleted_message(*, to: str, name: str | None) -> EmailMessage:
+    """Notice after account deletion. Contains NO link, like the password
+    notice: there is nothing to click, and links in security mail look like
+    phishing."""
+    greeting = f"Hi {name}," if name else "Hi there,"
+    body = (
+        f"{greeting}\n\n"
+        "Your Immersely account and all the data in it (sentences, scenes and "
+        "review history) have been permanently deleted.\n\n"
+        "If this was you, no action is needed. If it wasn't, someone had your "
+        "password: change it on any other site where you use it.\n"
+    )
+    return EmailMessage(
+        to=to, subject="Your Immersely account was deleted", text_body=body
+    )

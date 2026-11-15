@@ -70,6 +70,13 @@ class ResetPasswordIn(BaseModel):
     new_password: Annotated[str, StringConstraints(max_length=MAX_PASSWORD_INPUT_CHARS)]
 
 
+class DeleteAccountIn(BaseModel):
+    # No strip_whitespace, for the same reason as ChangePasswordIn.
+    password: Annotated[
+        str, StringConstraints(max_length=MAX_PASSWORD_INPUT_CHARS)
+    ]
+
+
 class ChangePasswordIn(BaseModel):
     # No strip_whitespace, for the same reason as ResetPasswordIn.
     current_password: Annotated[
