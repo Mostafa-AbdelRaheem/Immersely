@@ -16,7 +16,7 @@ class BatchTagItem(BaseModel):
         description="One or more topics from the fixed list that best match this sentence.",
     )
     grammar_tag: str | None = Field(
-        None,
+        ...,
         description="A short snake_case label for the main German grammar concept, e.g. 'perfekt'. Null if none stands out.",
     )
 

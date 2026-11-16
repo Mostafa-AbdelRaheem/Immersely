@@ -42,7 +42,9 @@ def _get_chain():
             reasoning_format="hidden",
             timeout=settings.timeout,
         )
-        _chain = llm.with_structured_output(BatchTaggingResult)
+        _chain = llm.with_structured_output(
+            BatchTaggingResult, method="json_schema", strict=True
+        )
     return _chain
 
 
