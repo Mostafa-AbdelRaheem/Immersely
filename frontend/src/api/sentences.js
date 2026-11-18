@@ -28,3 +28,21 @@ export function deleteSentence(id) {
     method: 'DELETE',
   })
 }
+
+export function previewImport(file) {
+  const body = new FormData()
+  body.append('file', file)
+  return apiFetch('/sentences/import/preview', { method: 'POST', body })
+}
+
+export function confirmImport(rows) {
+  return apiFetch('/sentences/import/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ sentences: rows }),
+  })
+}
+
+export async function downloadImportTemplate() {
+  const response = await apiFetch('/sentences/import/template', { raw: true })
+  return response.blob()
+}
