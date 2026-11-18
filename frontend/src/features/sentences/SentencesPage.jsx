@@ -4,6 +4,7 @@ import { listSentences, createSentence, updateSentence, deleteSentence } from '.
 import { useTopics } from '../../context/TopicsContext'
 import SentenceForm from './SentenceForm'
 import SentenceListItem from './SentenceListItem'
+import BulkImportFlow from './BulkImportFlow'
 import './sentences.css'
 
 export default function SentencesPage() {
@@ -11,6 +12,7 @@ export default function SentencesPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedTopic, setSelectedTopic] = useState(null)
+  const [isImporting, setIsImporting] = useState(false)
 
   const { topics } = useTopics()
 
@@ -56,6 +58,12 @@ export default function SentencesPage() {
     setSentences((prev) => prev.filter((s) => s.id !== id))
   }
 
+  function handleImported(saved) {
+    // The server returns file order; the list is newest-first, so reverse.
+    setSentences((prev) => [...saved].reverse().concat(prev))
+    setIsImporting(false)
+  }
+
   if (isLoading) return <p>Loading…</p>
   if (error) return <p className="form-error">{error}</p>
 
@@ -66,6 +74,16 @@ export default function SentencesPage() {
   return (
     <div>
       <h1>My Sentences</h1>
+
+      <button type="button" className="btn btn-secondary" onClick={() => setIsImporting(true)}>
+        Import from Excel
+      </button>
+      {isImporting && (
+        <BulkImportFlow
+          onClose={() => setIsImporting(false)}
+          onImported={handleImported}
+        />
+      )}
 
       <SentenceForm onSubmit={handleCreate} submitLabel="Add sentence" />
 

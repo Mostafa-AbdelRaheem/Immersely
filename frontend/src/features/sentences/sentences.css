@@ -1,5 +1,5 @@
 /* src/features/sentences/sentences.css
-   Sentence form, sentence list cards, and the tag editor. */
+   Sentence form, sentence list cards, the tag editor, and the import review rows. */
 
 /* --- Sentence form --- */
 
@@ -81,3 +81,70 @@
   border: 1px solid var(--color-border);
   width: 140px;
 }
+
+/* --- Bulk import review rows --- */
+
+.import-row {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1rem;
+}
+
+.import-row--blocked { border-left: 4px solid var(--color-danger); }
+
+.import-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.import-row-number { font-size: 0.8rem; color: var(--color-text-muted); }
+
+.import-row-remove {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.import-row-remove:hover { color: var(--color-danger); }
+
+.import-row-fields { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.import-row-note { margin: 0.3rem 0 0; font-size: 0.8rem; color: var(--color-text-muted); }
+
+.import-row-issues {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Bulk import dialog --- */
+
+/* Compound selector: beats .method-dialog's width whatever the load order. */
+.method-dialog.import-dialog { width: min(48rem, 94vw); }
+
+.import-pick { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+
+.import-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.import-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+}
+
+.import-footer p { margin: 0; font-size: 0.9rem; color: var(--color-text-muted); }
