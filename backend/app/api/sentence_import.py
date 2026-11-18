@@ -1,5 +1,5 @@
 # app/api/sentence_import.py
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
@@ -11,6 +11,7 @@ from app.schemas.sentence import SentenceRead
 from app.schemas.sentence_import import ImportConfirmIn, ImportPreviewOut
 from app.services.bulk_import_logic import MissingColumnsError, TooManyRowsError
 from app.services.bulk_import_reader import InvalidSpreadsheetError
+from app.services.bulk_import_template import build_template_bytes
 from app.services.sentence_import import build_preview, confirm_import, load_existing_keys
 
 router = APIRouter(prefix="/sentences/import", tags=["sentence-import"])
@@ -61,3 +62,17 @@ async def confirm(
     # Pydantic already re-validated every row. One transaction: all or nothing.
     # Failures are not caught here: they surface as a generic 500 (nothing saved).
     return await confirm_import(db, current_user.id, body.sentences)
+
+
+_XLSX_MEDIA_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+@router.get("/template")
+async def download_template(current_user: User = Depends(get_current_user)):
+    # Authenticated like the rest of the router. Fixed filename: no user input
+    # ever reaches the response headers.
+    return Response(
+        content=build_template_bytes(),
+        media_type=_XLSX_MEDIA_TYPE,
+        headers={"Content-Disposition": 'attachment; filename="immersely_import_template.xlsx"'},
+    )
