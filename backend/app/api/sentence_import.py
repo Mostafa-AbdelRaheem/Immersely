@@ -7,10 +7,11 @@ from app.core.config import settings
 from app.core.db import get_db
 from app.core.limiter import limiter
 from app.models.user import User
-from app.schemas.sentence_import import ImportPreviewOut
+from app.schemas.sentence import SentenceRead
+from app.schemas.sentence_import import ImportConfirmIn, ImportPreviewOut
 from app.services.bulk_import_logic import MissingColumnsError, TooManyRowsError
 from app.services.bulk_import_reader import InvalidSpreadsheetError
-from app.services.sentence_import import build_preview, load_existing_keys
+from app.services.sentence_import import build_preview, confirm_import, load_existing_keys
 
 router = APIRouter(prefix="/sentences/import", tags=["sentence-import"])
 
@@ -47,3 +48,16 @@ async def preview(
             status_code=_TOO_LARGE,
             detail={"code": "too_many_rows", "limit": exc.limit, "count": exc.count},
         )
+
+
+@router.post("/confirm", response_model=list[SentenceRead], status_code=201)
+@limiter.limit(lambda: settings.bulk_import_confirm_rate)
+async def confirm(
+    request: Request,
+    body: ImportConfirmIn,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # Pydantic already re-validated every row. One transaction: all or nothing.
+    # Failures are not caught here: they surface as a generic 500 (nothing saved).
+    return await confirm_import(db, current_user.id, body.sentences)
