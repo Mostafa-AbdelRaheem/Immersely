@@ -44,6 +44,14 @@ describe('recheckRows', () => {
     expect(a.has_blocking_issue).toBe(false)
   })
 
+  it('does not trust the has_blocking_issue the server sent', () => {
+    const wasBlocked = { ...row('Hallo', 'Hi', ['empty_en']), has_blocking_issue: true }
+    const wasFine = { ...row('Hallo', ''), has_blocking_issue: false }
+    const [fixed, broken] = recheckRows([wasBlocked, wasFine], 2000)
+    expect(fixed.has_blocking_issue).toBe(false)
+    expect(broken.has_blocking_issue).toBe(true)
+  })
+
   it('allows exactly maxLen and flags one more', () => {
     const [ok, long] = recheckRows([row('a'.repeat(5), 'x'), row('b'.repeat(6), 'y')], 5)
     expect(ok.issues).toEqual([])
