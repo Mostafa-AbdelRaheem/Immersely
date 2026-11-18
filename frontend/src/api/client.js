@@ -65,12 +65,18 @@ export async function refreshAccessToken() {
   }
 }
 
+// FormData must NOT get a Content-Type: the browser sets multipart/form-data
+// together with its boundary, and a manual value would break the upload.
+function contentTypeHeader(body) {
+  return body instanceof FormData ? {} : { 'Content-Type': 'application/json' }
+}
+
 export async function apiFetch(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
+      ...contentTypeHeader(options.body),
       ...(currentAccessToken ? { Authorization: `Bearer ${currentAccessToken}` } : {}),
       ...options.headers,
     },
@@ -84,7 +90,7 @@ export async function apiFetch(path, options = {}) {
         ...options,
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
+          ...contentTypeHeader(options.body),
           Authorization: `Bearer ${newToken}`,
           ...options.headers,
         },
