@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -5,6 +6,7 @@ from sqlalchemy import text
 
 from app.core.db import engine
 from app.core.limiter import limiter
+from app.services.embeddings import warm_up_model
 from app.api.auth import router as auth_router
 from app.api.sentences import router as sentences_router
 from app.api.topics import router as topics_router
@@ -24,7 +26,17 @@ from slowapi.errors import RateLimitExceeded
 async def lifespan(app: FastAPI):
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
-    yield
+    # Load the embedding model in the background so the first save is fast.
+    # The task is held in a local so it cannot be garbage-collected mid-run.
+    warm_up_task = asyncio.create_task(warm_up_model())
+    try:
+        yield
+    finally:
+        warm_up_task.cancel()
+        try:
+            await warm_up_task
+        except asyncio.CancelledError:
+            pass
 
 
 app = FastAPI(title="German Scene-Based SRS API", lifespan=lifespan)
