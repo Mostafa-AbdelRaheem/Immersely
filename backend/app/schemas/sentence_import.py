@@ -20,6 +20,7 @@ class PreviewRow(BaseModel):
 
 class ImportPreviewOut(BaseModel):
     rows: list[PreviewRow]
+    max_len: int  # the per-field length limit the server used for too_long_* issues
 
 
 class ImportConfirmRow(BaseModel):

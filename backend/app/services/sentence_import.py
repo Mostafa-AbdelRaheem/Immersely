@@ -64,7 +64,8 @@ async def build_preview(
     }
 
     return ImportPreviewOut(
-        rows=[_to_preview_row(row, outcome_by_row.get(row.row_number)) for row in parsed]
+        rows=[_to_preview_row(row, outcome_by_row.get(row.row_number)) for row in parsed],
+        max_len=MAX_TEXT_LEN,
     )
 
 

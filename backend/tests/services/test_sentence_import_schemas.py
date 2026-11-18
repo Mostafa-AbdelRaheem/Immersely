@@ -11,6 +11,7 @@ from app.schemas.sentence_import import (
     PreviewRow,
 )
 from app.services.bulk_tagging_logic import MAX_GRAMMAR_TAG_LEN
+from app.services.sentence_import import MAX_TEXT_LEN
 
 
 def _row(**overrides):
@@ -98,6 +99,13 @@ def test_preview_out_serializes_a_row():
         row_number=2, de="Hallo", en="Hi", topics=["weather"], grammar_tag=None,
         tagged=True, issues=[], has_blocking_issue=False,
     )
-    dumped = ImportPreviewOut(rows=[row]).model_dump()
+    dumped = ImportPreviewOut(rows=[row], max_len=2000).model_dump()
     assert dumped["rows"][0]["row_number"] == 2
     assert dumped["rows"][0]["tagged"] is True
+    assert dumped["max_len"] == 2000
+
+
+def test_max_text_len_matches_sentence_create():
+    # The preview reports MAX_TEXT_LEN to the client, so it must equal the real cap.
+    assert _caps(SentenceCreate, "de") == [MAX_TEXT_LEN]
+    assert _caps(SentenceCreate, "en") == [MAX_TEXT_LEN]
