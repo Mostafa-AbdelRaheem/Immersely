@@ -22,6 +22,13 @@ def _encode_sync(text: str) -> list[float]:
     return embedding.tolist()
 
 
+def _encode_many_sync(texts: list[str]) -> list[list[float]]:
+    """Blocking batch call — must only ever run inside asyncio.to_thread()."""
+    model = _get_model()
+    embeddings = model.encode(texts, convert_to_numpy=True)
+    return embeddings.tolist()
+
+
 async def embed_text(text: str) -> list[float]:
     """Generate a 768-dim embedding for a single piece of text.
 
@@ -29,3 +36,14 @@ async def embed_text(text: str) -> list[float]:
     so it doesn't block the event loop.
     """
     return await asyncio.to_thread(_encode_sync, text)
+
+
+async def embed_texts(texts: list[str]) -> list[list[float]]:
+    """Generate 768-dim embeddings for many texts in one batched model call.
+
+    Returns one vector per input, in input order. An empty input returns []
+    without loading the model or starting a thread.
+    """
+    if not texts:
+        return []
+    return await asyncio.to_thread(_encode_many_sync, texts)
