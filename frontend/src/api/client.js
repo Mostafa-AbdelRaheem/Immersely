@@ -71,7 +71,8 @@ function contentTypeHeader(body) {
   return body instanceof FormData ? {} : { 'Content-Type': 'application/json' }
 }
 
-export async function apiFetch(path, options = {}) {
+// With { raw: true } the caller gets the Response itself (e.g. for a file download).
+export async function apiFetch(path, { raw = false, ...options } = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     credentials: 'include',
@@ -100,6 +101,10 @@ export async function apiFetch(path, options = {}) {
         throw await buildApiError(retryResponse)
       }
 
+      if (raw) {
+        return retryResponse
+      }
+
       if (retryResponse.status === 204) {
         return null
       }
@@ -117,6 +122,10 @@ export async function apiFetch(path, options = {}) {
 
   if (!response.ok) {
     throw await buildApiError(response)
+  }
+
+  if (raw) {
+    return response
   }
 
   if (response.status === 204) {
