@@ -14,11 +14,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.langchain_.batch_tagging import tag_batch
 from app.models.sentence import Sentence
-from app.schemas.sentence_import import ImportPreviewOut, PreviewRow
+from app.schemas.sentence_import import ImportConfirmRow, ImportPreviewOut, PreviewRow
 from app.services.bulk_import_logic import ParsedRow, normalize_for_dedupe, parse_rows
 from app.services.bulk_import_reader import read_xlsx_rows
 from app.services.bulk_tagging import TagBatchFn, tag_sentences
 from app.services.bulk_tagging_logic import TagOutcome
+from app.services.embeddings import embed_texts
 
 # Same cap as SentenceCreate (a test guards against drift).
 MAX_TEXT_LEN = 2000
@@ -71,3 +72,33 @@ async def load_existing_keys(db: AsyncSession, user_id: uuid.UUID) -> set[str]:
     """Dedupe keys of the user's saved sentences. Selects only `de`, never embeddings."""
     result = await db.execute(select(Sentence.de).where(Sentence.user_id == user_id))
     return {normalize_for_dedupe(de) for de in result.scalars().all()}
+
+
+async def confirm_import(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    rows: list[ImportConfirmRow],
+    *,
+    embed_fn=embed_texts,
+) -> list[Sentence]:
+    """Save the reviewed rows in ONE transaction (all or nothing).
+
+    Embeddings are computed first, in one batched call, before the session is
+    touched: if that fails, nothing was added. Returns the new sentences in
+    file order. Duplicates are not re-checked (the user saw the warnings).
+    """
+    vectors = await embed_fn([row.de for row in rows])
+    sentences = [
+        Sentence(
+            user_id=user_id,
+            de=row.de,
+            en=row.en,
+            topics=[topic.value for topic in row.topics],
+            grammar_tag=row.grammar_tag,
+            embedding=vector,
+        )
+        for row, vector in zip(rows, vectors, strict=True)
+    ]
+    db.add_all(sentences)
+    await db.commit()
+    return sentences
