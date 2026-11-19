@@ -176,6 +176,40 @@
 }
 
 
+/* --- Floating add button --- */
+
+.fab {
+  position: fixed;
+  right: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: 1.75rem;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+.fab:hover { background: var(--color-primary-hover); }
+.fab .nav-icon { width: 26px; height: 26px; stroke-width: 2.2; }
+.fab:focus-visible { outline: 2px solid var(--color-text); outline-offset: 3px; }
+
+/* Hidden while a review session is running. Depends on the .session-runner
+   class used by SessionRunner and FlipRunner; keep them in sync. */
+.app-shell:has(.session-runner) .fab { display: none; }
+
+/* Hidden while a chat is open (its composer sits at the bottom). Depends on
+   the .conversations-page--chat class; keep them in sync. */
+.app-shell:has(.conversations-page--chat) .fab { display: none; }
+
 /* --- Small screens: sidebar becomes a slide-in drawer --- */
 
 @media (max-width: 860px) {
