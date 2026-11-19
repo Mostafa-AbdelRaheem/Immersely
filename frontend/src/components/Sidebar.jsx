@@ -8,7 +8,7 @@ import Icon from './icons'
 // Items without `to` have no page yet; they render as disabled "Soon" entries.
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: 'dashboard', end: true },
-  { to: '/sentences', label: 'Collections', icon: 'collections' },
+  { to: '/sentences', label: 'Cards', icon: 'collections' },
   { to: '/review', label: 'Flashcards', icon: 'flashcards' },
   { to: '/conversations', label: 'Conversations', icon: 'conversation' },
   { to: '/read', label: 'Read', icon: 'reads' },
