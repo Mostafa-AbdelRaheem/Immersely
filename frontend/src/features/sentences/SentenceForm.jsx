@@ -1,5 +1,5 @@
 // src/features/sentences/SentenceForm.jsx
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import './sentences.css'
 
 export default function SentenceForm({ initialValues, onSubmit, onCancel, submitLabel }) {
@@ -7,6 +7,8 @@ export default function SentenceForm({ initialValues, onSubmit, onCancel, submit
   const [en, setEn] = useState(initialValues?.en ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  // Unique per instance, so two forms on one page never share ids.
+  const uid = useId()
 
   const isValid = de.trim().length > 0 && en.trim().length > 0
 
@@ -28,9 +30,9 @@ export default function SentenceForm({ initialValues, onSubmit, onCancel, submit
   return (
     <form className="sentence-form" onSubmit={handleSubmit}>
       <div className="form-field">
-        <label htmlFor="de">German</label>
+        <label htmlFor={`${uid}-de`}>German</label>
         <input
-          id="de"
+          id={`${uid}-de`}
           type="text"
           value={de}
           onChange={(e) => setDe(e.target.value)}
@@ -38,9 +40,9 @@ export default function SentenceForm({ initialValues, onSubmit, onCancel, submit
         />
       </div>
       <div className="form-field">
-        <label htmlFor="en">English</label>
+        <label htmlFor={`${uid}-en`}>English</label>
         <input
-          id="en"
+          id={`${uid}-en`}
           type="text"
           value={en}
           onChange={(e) => setEn(e.target.value)}
