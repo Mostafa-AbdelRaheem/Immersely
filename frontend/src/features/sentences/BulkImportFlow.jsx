@@ -120,6 +120,7 @@ export default function BulkImportFlow({ onClose, onImported }) {
           </p>
           <input
             ref={fileInputRef}
+            className="import-file"
             type="file"
             accept=".xlsx"
             aria-label="Choose an .xlsx file"
