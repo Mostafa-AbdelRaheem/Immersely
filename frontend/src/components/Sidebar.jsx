@@ -1,4 +1,5 @@
 // src/components/Sidebar.jsx
+import { useEffect } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -14,16 +15,38 @@ const NAV_ITEMS = [
   { label: 'Settings', icon: 'settings' },
 ]
 
-export default function Sidebar() {
+// isOpen/onClose only matter on small screens, where the sidebar is a drawer.
+// Above the breakpoint the CSS ignores them and the sidebar is always visible.
+export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const { logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
 
+  // Escape closes the drawer. The listener exists only while it is open.
+  useEffect(() => {
+    if (!isOpen) return undefined
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
   return (
-    <aside className="sidebar">
-      <Link to="/" className="sidebar-brand">
-        <span className="sidebar-logo" aria-hidden="true">G</span>
-        German SRS
-      </Link>
+    <aside id="app-sidebar" className={`sidebar${isOpen ? ' sidebar--open' : ''}`}>
+      <div className="sidebar-header">
+        <Link to="/" className="sidebar-brand" onClick={onClose}>
+          <span className="sidebar-logo" aria-hidden="true">G</span>
+          German SRS
+        </Link>
+        <button
+          type="button"
+          className="sidebar-close"
+          onClick={onClose}
+          aria-label="Close menu"
+        >
+          <Icon name="close" />
+        </button>
+      </div>
 
       <nav className="sidebar-nav" aria-label="Main">
         {NAV_ITEMS.map((item) =>
@@ -32,6 +55,7 @@ export default function Sidebar() {
               key={item.label}
               to={item.to}
               end={item.end}
+              onClick={onClose}
               className={({ isActive }) => `nav-item${isActive ? ' nav-item--active' : ''}`}
             >
               <Icon name={item.icon} />
