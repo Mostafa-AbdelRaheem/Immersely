@@ -1,10 +1,9 @@
 // src/features/sentences/SentencesPage.jsx
 import { useEffect, useState } from 'react'
-import { listSentences, createSentence, updateSentence, deleteSentence } from '../../api/sentences'
+import { listSentences, updateSentence, deleteSentence } from '../../api/sentences'
+import { useSentencesSync } from '../../context/SentencesSyncContext'
 import { useTopics } from '../../context/TopicsContext'
-import SentenceForm from './SentenceForm'
 import SentenceListItem from './SentenceListItem'
-import BulkImportFlow from './BulkImportFlow'
 import './sentences.css'
 
 export default function SentencesPage() {
@@ -12,9 +11,10 @@ export default function SentencesPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [selectedTopic, setSelectedTopic] = useState(null)
-  const [isImporting, setIsImporting] = useState(false)
 
   const { topics } = useTopics()
+  // Bumped by the global add modal; refetching on change keeps this list current.
+  const { sentencesVersion } = useSentencesSync()
 
   useEffect(() => {
     let cancelled = false
@@ -41,12 +41,7 @@ export default function SentencesPage() {
     return () => {
       cancelled = true
     }
-  }, [])
-
-  async function handleCreate(data) {
-    const newSentence = await createSentence(data)
-    setSentences((prev) => [newSentence, ...prev])
-  }
+  }, [sentencesVersion])
 
   async function handleUpdate(id, changes) {
     const updated = await updateSentence(id, changes)
@@ -58,12 +53,6 @@ export default function SentencesPage() {
     setSentences((prev) => prev.filter((s) => s.id !== id))
   }
 
-  function handleImported(saved) {
-    // The server returns file order; the list is newest-first, so reverse.
-    setSentences((prev) => [...saved].reverse().concat(prev))
-    setIsImporting(false)
-  }
-
   if (isLoading) return <p>Loading…</p>
   if (error) return <p className="form-error">{error}</p>
 
@@ -73,19 +62,7 @@ export default function SentencesPage() {
 
   return (
     <div>
-      <h1>My Sentences</h1>
-
-      <button type="button" className="btn btn-secondary import-trigger" onClick={() => setIsImporting(true)}>
-        Import from Excel
-      </button>
-      {isImporting && (
-        <BulkImportFlow
-          onClose={() => setIsImporting(false)}
-          onImported={handleImported}
-        />
-      )}
-
-      <SentenceForm onSubmit={handleCreate} submitLabel="Add sentence" />
+      <h1>Cards</h1>
 
       <div className="filter-bar">
         <label htmlFor="topic-filter">Filter by topic:</label>
@@ -106,7 +83,7 @@ export default function SentencesPage() {
       {filteredSentences.length === 0 ? (
         <p className="empty-state">
           {sentences.length === 0
-            ? 'No sentences yet — add one above.'
+            ? 'No cards yet. Tap the + button to add one.'
             : 'No sentences match this topic.'}
         </p>
       ) : (
