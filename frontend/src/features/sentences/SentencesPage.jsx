@@ -75,7 +75,7 @@ export default function SentencesPage() {
     <div>
       <h1>My Sentences</h1>
 
-      <button type="button" className="btn btn-secondary" onClick={() => setIsImporting(true)}>
+      <button type="button" className="btn btn-secondary import-trigger" onClick={() => setIsImporting(true)}>
         Import from Excel
       </button>
       {isImporting && (

@@ -148,3 +148,7 @@
 }
 
 .import-footer p { margin: 0; font-size: 0.9rem; color: var(--color-text-muted); }
+
+/* --- Import trigger (button above the sentence form) --- */
+
+.import-trigger { margin: 0.75rem 0 1rem; }
