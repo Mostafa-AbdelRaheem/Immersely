@@ -7,6 +7,7 @@ messages are a separate call.
 from langchain_groq import ChatGroq
 
 from app.core.config import settings
+from app.core.levels import DEFAULT_LEVEL, LEVEL_GUIDANCE, Level
 from app.core.scenarios import Scenario
 from app.models.sentence import Sentence
 
@@ -18,8 +19,8 @@ Situation: {situation}
 Rules:
 - Write ONLY the partner's next message, in German, as plain text. No \
 speaker label, no quotation marks, no English, no stage directions.
-- Keep it short: one or two simple sentences of everyday German, suitable \
-for a learner at about level A2.
+- Keep it short: one or two sentences of everyday German, suitable \
+for a learner at level {level}. Follow this level guidance: {level_guidance}
 - Address the learner with "{formality}" consistently.
 - Keep the conversation going: react to what the learner just said, then \
 end with a question or remark that invites a reply.
@@ -65,6 +66,7 @@ def build_partner_messages(
     scenario: Scenario,
     history: list[tuple[str, str]],
     sentences: list[Sentence],
+    level: Level = DEFAULT_LEVEL,
 ) -> list[tuple[str, str]]:
     """Build the exact message list sent to the model.
 
@@ -78,6 +80,8 @@ def build_partner_messages(
         user_role=scenario.user_role,
         situation=scenario.situation,
         formality=scenario.formality,
+        level=level.value,
+        level_guidance=LEVEL_GUIDANCE[level],
         sentences_block=sentences_block,
     )
 
@@ -99,8 +103,9 @@ async def generate_partner_reply(
     scenario: Scenario,
     history: list[tuple[str, str]],
     sentences: list[Sentence],
+    level: Level = DEFAULT_LEVEL,
 ) -> str:
     response = await _get_llm().ainvoke(
-        build_partner_messages(scenario, history, sentences)
+        build_partner_messages(scenario, history, sentences, level)
     )
     return str(response.content).strip()
