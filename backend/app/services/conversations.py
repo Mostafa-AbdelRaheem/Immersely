@@ -13,6 +13,7 @@ from groq import APIConnectionError, APITimeoutError, BadRequestError, RateLimit
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.levels import DEFAULT_LEVEL, Level
 from app.core.scenarios import SCENARIOS_BY_ID
 from app.langchain_.chat_correction import judge_chat_message
 from app.langchain_.conversation_partner import generate_partner_reply
@@ -68,6 +69,7 @@ async def run_turn(
     user_id: uuid.UUID,
     scenario_id: str,
     raw_history: list[tuple[str, str]],
+    level: Level = DEFAULT_LEVEL,
 ) -> TurnResult:
     scenario = SCENARIOS_BY_ID.get(scenario_id)
     if scenario is None:
@@ -107,7 +109,7 @@ async def run_turn(
         correction_call = _no_correction()
 
     partner_raw, correction_raw = await asyncio.gather(
-        generate_partner_reply(scenario, history, partner_sentences),
+        generate_partner_reply(scenario, history, partner_sentences, level),
         correction_call,
         return_exceptions=True,
     )
