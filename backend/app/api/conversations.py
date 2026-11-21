@@ -39,7 +39,9 @@ async def turn(
 ):
     history = [(m.role, m.text) for m in body.history]
     try:
-        result = await run_turn(db, current_user.id, body.scenario_id, history)
+        result = await run_turn(
+            db, current_user.id, body.scenario_id, history, level=body.level
+        )
     except UnknownScenarioError:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Scenario not found"
