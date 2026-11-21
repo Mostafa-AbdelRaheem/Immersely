@@ -74,6 +74,16 @@ class Settings(BaseSettings):
     chat_max_history_messages: int = 20
     chat_max_message_chars: int = 500
 
+    # Bulk sentence import (N5c). Rows per file and bytes per upload are
+    # capped before any parsing or LLM call. Tagging runs in sequential
+    # chunks of bulk_tag_chunk_size sentences per LLM request.
+    bulk_import_max_rows: int = Field(default=100, ge=1)
+    bulk_import_max_upload_bytes: int = Field(default=1_000_000, ge=1)
+    bulk_tag_chunk_size: int = Field(default=10, ge=1, le=50)
+    # Confirm saves the reviewed rows (local embedding model, no LLM).
+    # A slowapi rate string, per IP. A typo here fails when the route module loads.
+    bulk_import_confirm_rate: str = "5/minute"
+
     timeout: int = 15
 
     model_config = SettingsConfigDict(env_file=".env")

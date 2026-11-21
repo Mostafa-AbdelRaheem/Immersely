@@ -1,8 +1,8 @@
 // src/features/sentences/SentencesPage.jsx
 import { useEffect, useState } from 'react'
-import { listSentences, createSentence, updateSentence, deleteSentence } from '../../api/sentences'
+import { listSentences, updateSentence, deleteSentence } from '../../api/sentences'
+import { useSentencesSync } from '../../context/SentencesSyncContext'
 import { useTopics } from '../../context/TopicsContext'
-import SentenceForm from './SentenceForm'
 import SentenceListItem from './SentenceListItem'
 import './sentences.css'
 
@@ -13,6 +13,8 @@ export default function SentencesPage() {
   const [selectedTopic, setSelectedTopic] = useState(null)
 
   const { topics } = useTopics()
+  // Bumped by the global add modal; refetching on change keeps this list current.
+  const { sentencesVersion } = useSentencesSync()
 
   useEffect(() => {
     let cancelled = false
@@ -39,12 +41,7 @@ export default function SentencesPage() {
     return () => {
       cancelled = true
     }
-  }, [])
-
-  async function handleCreate(data) {
-    const newSentence = await createSentence(data)
-    setSentences((prev) => [newSentence, ...prev])
-  }
+  }, [sentencesVersion])
 
   async function handleUpdate(id, changes) {
     const updated = await updateSentence(id, changes)
@@ -65,9 +62,7 @@ export default function SentencesPage() {
 
   return (
     <div>
-      <h1>My Sentences</h1>
-
-      <SentenceForm onSubmit={handleCreate} submitLabel="Add sentence" />
+      <h1>Cards</h1>
 
       <div className="filter-bar">
         <label htmlFor="topic-filter">Filter by topic:</label>
@@ -88,7 +83,7 @@ export default function SentencesPage() {
       {filteredSentences.length === 0 ? (
         <p className="empty-state">
           {sentences.length === 0
-            ? 'No sentences yet — add one above.'
+            ? 'No cards yet. Tap the + button to add one.'
             : 'No sentences match this topic.'}
         </p>
       ) : (

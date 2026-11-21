@@ -65,12 +65,19 @@ export async function refreshAccessToken() {
   }
 }
 
-export async function apiFetch(path, options = {}) {
+// FormData must NOT get a Content-Type: the browser sets multipart/form-data
+// together with its boundary, and a manual value would break the upload.
+function contentTypeHeader(body) {
+  return body instanceof FormData ? {} : { 'Content-Type': 'application/json' }
+}
+
+// With { raw: true } the caller gets the Response itself (e.g. for a file download).
+export async function apiFetch(path, { raw = false, ...options } = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
+      ...contentTypeHeader(options.body),
       ...(currentAccessToken ? { Authorization: `Bearer ${currentAccessToken}` } : {}),
       ...options.headers,
     },
@@ -84,7 +91,7 @@ export async function apiFetch(path, options = {}) {
         ...options,
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
+          ...contentTypeHeader(options.body),
           Authorization: `Bearer ${newToken}`,
           ...options.headers,
         },
@@ -92,6 +99,10 @@ export async function apiFetch(path, options = {}) {
 
       if (!retryResponse.ok) {
         throw await buildApiError(retryResponse)
+      }
+
+      if (raw) {
+        return retryResponse
       }
 
       if (retryResponse.status === 204) {
@@ -111,6 +122,10 @@ export async function apiFetch(path, options = {}) {
 
   if (!response.ok) {
     throw await buildApiError(response)
+  }
+
+  if (raw) {
+    return response
   }
 
   if (response.status === 204) {

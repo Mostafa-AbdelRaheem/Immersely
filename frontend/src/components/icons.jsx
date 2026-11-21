@@ -47,6 +47,9 @@ const PATHS = {
   ),
   moon: <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />,
   stats: <path d="M5 20V11M12 20V4M19 20v-6" />,
+  menu: <path d="M4 6h16M4 12h16M4 18h16" />,
+  close: <path d="M6 6l12 12M18 6L6 18" />,
+  plus: <path d="M12 5v14M5 12h14" />,
 }
 
 export default function Icon({ name }) {

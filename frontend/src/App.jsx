@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { TopicsProvider } from './context/TopicsContext'
 import { DueCountProvider } from './context/DueCountContext'
+import { SentencesSyncProvider } from './context/SentencesSyncContext'
 import Layout from './components/Layout'
 import LoginPage from './features/auth/LoginPage.jsx'
 import RegisterPage from './features/auth/RegisterPage.jsx'
@@ -36,7 +37,9 @@ function App() {
               element={
                 <TopicsProvider>
                   <DueCountProvider>
-                    <Layout />
+                    <SentencesSyncProvider>
+                      <Layout />
+                    </SentencesSyncProvider>
                   </DueCountProvider>
                 </TopicsProvider>
               }

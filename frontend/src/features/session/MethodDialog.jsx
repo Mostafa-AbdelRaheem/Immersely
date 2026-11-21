@@ -4,7 +4,7 @@ import './MethodDialog.css'
 
 // Shows its children in a native modal <dialog>. Mount it to open it;
 // onClose fires when the user dismisses it (Escape, ×, backdrop click).
-export default function MethodDialog({ title, busy, onClose, children }) {
+export default function MethodDialog({ title, busy, onClose, className, children }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function MethodDialog({ title, busy, onClose, children }) {
   return (
     <dialog
       ref={ref}
-      className="method-dialog"
+      className={className ? `method-dialog ${className}` : 'method-dialog'}
       aria-label={title}
       onClose={onClose}
       onCancel={handleCancel}
