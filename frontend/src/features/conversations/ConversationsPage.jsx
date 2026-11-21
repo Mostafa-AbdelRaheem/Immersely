@@ -10,6 +10,10 @@ import './ConversationsPage.css'
 
 const MAX_MESSAGE_CHARS = 500 // keep in sync with Settings.chat_max_message_chars
 
+// Keep in sync with app/core/levels.py (the server validates the value).
+const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+const DEFAULT_LEVEL = 'B1'
+
 function errorMessage(err) {
   if (err.status === 429) return 'You are sending messages too fast. Wait a moment.'
   if (err.status === 503) return 'The chat service is busy. Please try again.'
@@ -21,6 +25,7 @@ export default function ConversationsPage() {
   const [scenarios, setScenarios] = useState([])
   const [scenariosError, setScenariosError] = useState(null)
   const [scenario, setScenario] = useState(null)
+  const [level, setLevel] = useState(DEFAULT_LEVEL) // fixed once a conversation starts
   const [state, dispatch] = useReducer(chatReducer, initialState)
   const [draft, setDraft] = useState('')
   const requestId = useRef(0)
@@ -49,7 +54,7 @@ export default function ConversationsPage() {
   async function runTurn(scenarioId, history) {
     const id = ++requestId.current
     try {
-      const result = await sendTurn(scenarioId, history)
+      const result = await sendTurn(scenarioId, history, level)
       if (id !== requestId.current) return false // a newer request replaced this one
       dispatch({
         type: 'TURN_RECEIVED',
@@ -110,6 +115,20 @@ export default function ConversationsPage() {
           Pick a situation and chat in German. Nothing is graded; you get gentle corrections.
         </p>
         {scenariosError && <p className="form-error">{scenariosError}</p>}
+        <div className="filter-bar">
+          <label htmlFor="conversation-level">Level:</label>
+          <select
+            id="conversation-level"
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+          >
+            {LEVELS.map((l) => (
+              <option key={l} value={l}>
+                {l}
+              </option>
+            ))}
+          </select>
+        </div>
         <ul className="scenario-list">
           {scenarios.map((s) => (
             <li key={s.id}>
