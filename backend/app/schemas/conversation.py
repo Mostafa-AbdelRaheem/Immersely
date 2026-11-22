@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
+from app.core.levels import DEFAULT_LEVEL, Level
 from app.schemas.correction import GrammarVerdict
 
 
@@ -15,6 +16,7 @@ class ChatMessageIn(BaseModel):
 class TurnRequest(BaseModel):
     scenario_id: str
     history: list[ChatMessageIn] = []
+    level: Level = DEFAULT_LEVEL
 
 
 class ChipRead(BaseModel):
